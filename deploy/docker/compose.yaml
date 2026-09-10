@@ -3,6 +3,7 @@
 #   docker compose exec server /keelage-server org create acme
 #   docker compose exec server /keelage-server member add acme <github-login>
 #   docker compose exec server /keelage-server key          # server public key for verify-proof
+# GitHub App: put the private key at ./secrets/app.pem and set KEELAGE_GITHUB_APP_KEY=/secrets/app.pem in .env
 services:
   db:
     image: postgres:16-alpine
@@ -28,10 +29,12 @@ services:
       KEELAGE_GITHUB_CLIENT_ID: ${KEELAGE_GITHUB_CLIENT_ID:-}
       # GitHub App (optional): PR comments·checks, reviews → judgments
       KEELAGE_GITHUB_APP_ID: ${KEELAGE_GITHUB_APP_ID:-}
+      # the PEM lives in ./secrets on the host, mounted read-only at /secrets
       KEELAGE_GITHUB_APP_KEY: ${KEELAGE_GITHUB_APP_KEY:-}
       KEELAGE_GITHUB_WEBHOOK_SECRET: ${KEELAGE_GITHUB_WEBHOOK_SECRET:-}
     volumes:
       - serverdata:/data
+      - ${KEELAGE_SECRETS_DIR:-./secrets}:/secrets:ro
     ports:
       - "${KEELAGE_PORT:-8080}:8080"
 volumes:

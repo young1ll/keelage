@@ -7,13 +7,18 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/young1ll/keelage/internal/port"
 )
 
+// norm is the canonical user id: GitHub logins are case-insensitive.
+func norm(user string) string { return strings.ToLower(strings.TrimSpace(user)) }
+
 // AddMember adds a user to an org (idempotent; role updated).
 func (s *Store) AddMember(ctx context.Context, org, user, role string) error {
+	user = norm(user)
 	if role == "" {
 		role = "member"
 	}
@@ -23,6 +28,7 @@ func (s *Store) AddMember(ctx context.Context, org, user, role string) error {
 
 // IsMember reports membership.
 func (s *Store) IsMember(ctx context.Context, org, user string) (bool, error) {
+	user = norm(user)
 	var n int
 	err := s.db.QueryRowContext(ctx, `SELECT count(1) FROM member WHERE org_id = $1 AND user_id = $2`, org, user).Scan(&n)
 	return n > 0, err
@@ -44,6 +50,7 @@ func (s *Store) IssueToken(ctx context.Context, org, user, kind, owner, label st
 	if kind != "human" && owner == "" {
 		return "", errors.New("postgres: agent and ci tokens need an owner")
 	}
+	user, owner = norm(user), norm(owner)
 	// the responsible human must be a member: the user for human tokens,
 	// the owner for agent and ci tokens
 	member := user

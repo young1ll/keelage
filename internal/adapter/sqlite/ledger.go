@@ -284,6 +284,16 @@ func (l *Ledger) Head(ctx context.Context) (port.Head, error) {
 	return h, nil
 }
 
+// FindOrigin implements port.OriginLedger (the team cache keeps origins).
+func (l *Ledger) FindOrigin(ctx context.Context, daemonID string, localSeq int64) (int64, error) {
+	var seq int64
+	err := l.db.QueryRowContext(ctx, `SELECT seq FROM event WHERE json_extract(origin, '$.daemon_id') = ? AND json_extract(origin, '$.local_seq') = ? LIMIT 1`, daemonID, localSeq).Scan(&seq)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, port.ErrNotFound
+	}
+	return seq, err
+}
+
 // Lookup implements port.Ledger.
 func (l *Ledger) Lookup(ctx context.Context, stream, idem string) (core.Envelope, error) {
 	evs, err := l.query(ctx, `SELECT `+columns+` FROM event WHERE stream = ? AND idem = ?`, stream, idem)
@@ -296,4 +306,7 @@ func (l *Ledger) Lookup(ctx context.Context, stream, idem string) (core.Envelope
 	return evs[0], nil
 }
 
-var _ port.Ledger = (*Ledger)(nil)
+var (
+	_ port.Ledger       = (*Ledger)(nil)
+	_ port.OriginLedger = (*Ledger)(nil)
+)

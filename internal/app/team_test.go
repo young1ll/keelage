@@ -215,9 +215,23 @@ func TestSync_PushPullBetweenDaemons(t *testing.T) {
 	if prep, _ := syncA.Pull(ctx, &a.state); prep.Skipped != 2 || prep.Cached != 0 {
 		t.Fatalf("alice pull: %+v", prep)
 	}
+	// bob re-pulling from zero (cursor reset) re-caches nothing
+	b.state.PullCursor = 0
+	if prep, err := syncB.Pull(ctx, &b.state); err != nil || prep.Cached != 0 || prep.Skipped != 2 {
+		t.Fatalf("re-pull: %+v %v", prep, err)
+	}
+	if h, _ := b.cache.Head(ctx); h.Seq != 2 {
+		t.Fatalf("cache grew on re-pull: %d", h.Seq)
+	}
 
-	// bob drafts the same stream locally: version conflict → Rejected on the server, logged for bob
+	// bob drafts a new constraint and, locally, the same stream as alice's:
+	// the new one is accepted, the clash is a version conflict → Rejected on
+	// the server, logged for bob. The accepted record must still reach the
+	// server's projections even though the rejection moved the cursor.
 	bobB := core.ActorRef{Kind: core.ActorHuman, ID: "bob"}
+	if _, err := b.p.Handle(ctx, bobB, harness.DraftConstraint{ID: "c2", ConstraintKind: harness.KindRule, Scope: team, Body: "bob's rule", Authored: true}); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := b.p.Handle(ctx, bobB, harness.DraftConstraint{ID: "c1", ConstraintKind: harness.KindRule, Scope: team, Body: "mine", Authored: true}); err != nil {
 		t.Fatal(err)
 	}
@@ -225,8 +239,12 @@ func TestSync_PushPullBetweenDaemons(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if rep.Accepted != 0 || len(rep.Rejected) != 1 || rep.Rejected[0].Code != "version-conflict" {
+	if rep.Accepted != 1 || len(rep.Rejected) != 1 || rep.Rejected[0].Code != "version-conflict" {
 		t.Fatalf("conflict push: %+v", rep)
+	}
+	sorg, _ := srv.Orgs.Get(ctx, "acme")
+	if _, ok := sorg.Constraints.Get("c2"); !ok {
+		t.Fatal("accepted record skipped by the server projections")
 	}
 	rej := serverRejections(t, sledger)
 	if len(rej) != 1 || rej[0].Code != "version-conflict" || rej[0].Target != "constraint/c1" || rej[0].Actor.ID != "bob" {
@@ -288,20 +306,39 @@ func TestSync_PushRefusesForgedOrForeignRecords(t *testing.T) {
 	if len(res.Rejected) != 1 || res.Rejected[0].Code != "unauthorized" {
 		t.Fatalf("foreign actor: %+v", res)
 	}
-	// a session stream is never shareable server-side
+	// the Rejected stream never travels; a malformed actor is refused too
 	sess := memory.NewLedger(a.key)
 	s := good
 	s.Seq, s.Ver, s.Sig = 0, 0, nil
-	if _, err := sess.Append(ctx, "session/claude-code/s1", port.AnyVersion, []core.Envelope{s}); err != nil {
+	if _, err := sess.Append(ctx, core.RejectedStream, port.AnyVersion, []core.Envelope{s}); err != nil {
 		t.Fatal(err)
 	}
 	se, _ := sess.ReadAll(ctx, 1, 0)
 	res, _ = client.Push(ctx, port.PushRequest{DaemonID: a.key.Fingerprint(), Events: se})
 	if len(res.Rejected) != 1 || res.Rejected[0].Code != "not-shareable" {
-		t.Fatalf("session: %+v", res)
+		t.Fatalf("rejected stream: %+v", res)
+	}
+	bad := memory.NewLedger(a.key)
+	m := good
+	m.Actor = core.ActorRef{Kind: "robot", ID: "x"}
+	m.Seq, m.Ver, m.Sig = 0, 0, nil
+	if _, err := bad.Append(ctx, "constraint/c9", port.AnyVersion, []core.Envelope{m}); err != nil {
+		t.Fatal(err)
+	}
+	be, _ := bad.ReadAll(ctx, 1, 0)
+	res, _ = client.Push(ctx, port.PushRequest{DaemonID: a.key.Fingerprint(), Events: be})
+	if len(res.Rejected) != 1 || res.Rejected[0].Code != "unauthorized" {
+		t.Fatalf("malformed actor: %+v", res)
+	}
+	// ver 0 would disable the continuity check: refused without a record
+	z := good
+	z.Ver = 0
+	res, _ = client.Push(ctx, port.PushRequest{DaemonID: a.key.Fingerprint(), Events: []core.Envelope{z}})
+	if len(res.Rejected) != 1 || res.Rejected[0].Code != "bad-hash" {
+		t.Fatalf("ver 0: %+v", res)
 	}
 	rej := serverRejections(t, sledger)
-	if len(rej) != 2 || rej[0].Code != "unauthorized" || rej[1].Code != "not-shareable" {
+	if len(rej) != 3 || rej[0].Code != "unauthorized" || rej[1].Code != "not-shareable" || rej[2].Code != "unauthorized" {
 		t.Fatalf("recorded rejections: %+v", rej)
 	}
 	// the key cannot be re-bound
@@ -425,7 +462,12 @@ func TestLogin_DeviceFlowIssuesTokensToMembers(t *testing.T) {
 	}
 	// not a member of that org
 	l2 := &Login{OAuth: &fakeOAuth{login: "mallory", polls: 1}, Members: members{"acme/alice": true}, Tokens: issuer}
-	if _, err := l2.Poll(ctx, "acme", "dc"); !errors.Is(err, ErrNotMember) {
+	if _, err := l2.Poll(ctx, "acme", "dc"); !errors.Is(err, ErrNotMember) || !errors.Is(err, port.ErrForbidden) {
 		t.Fatalf("non-member: %v", err)
+	}
+	// mixed-case provider logins map to the lower-case member id
+	l3 := &Login{OAuth: &fakeOAuth{login: "Alice", polls: 1}, Members: members{"acme/alice": true}, Tokens: issuer}
+	if p, err := l3.Poll(ctx, "acme", "dc"); err != nil || p.User != "alice" {
+		t.Fatalf("case: %+v %v", p, err)
 	}
 }

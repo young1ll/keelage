@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/young1ll/keelage/internal/port"
@@ -48,12 +49,14 @@ func (l *Login) Poll(ctx context.Context, org, deviceCode string) (port.DevicePo
 	if status != "ok" {
 		return port.DevicePoll{Status: status, Interval: interval}, nil
 	}
+	// GitHub logins are case-insensitive; keelage user ids are their lower-case form
+	login = strings.ToLower(login)
 	ok, err := l.Members.IsMember(ctx, org, login)
 	if err != nil {
 		return port.DevicePoll{}, err
 	}
 	if !ok {
-		return port.DevicePoll{}, fmt.Errorf("%w: %s in %s", ErrNotMember, login, org)
+		return port.DevicePoll{}, fmt.Errorf("%w: %w: %s in %s", port.ErrForbidden, ErrNotMember, login, org)
 	}
 	tok, err := l.Tokens.IssueToken(ctx, org, login, "human", "", "device-login", l.TTL)
 	if err != nil {

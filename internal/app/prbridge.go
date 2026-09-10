@@ -143,12 +143,8 @@ func (b *PRBridge) review(ctx context.Context, ev port.RepoEvent, rep PRReport) 
 		rep.Skipped = "no review"
 		return rep, nil
 	}
-	var decision accountability.JudgmentDecision
 	switch ev.Review.State {
-	case "approved":
-		decision = accountability.DecisionAccept
-	case "changes_requested":
-		decision = accountability.DecisionReject
+	case "approved", "changes_requested":
 	default:
 		rep.Skipped = "review state " + ev.Review.State + " is not a judgment"
 		return rep, nil
@@ -159,7 +155,7 @@ func (b *PRBridge) review(ctx context.Context, ev port.RepoEvent, rep PRReport) 
 	}
 	rep.Org = org
 	if b.Members != nil {
-		ok, err := b.Members.IsMember(ctx, org, ev.Review.Login)
+		ok, err := b.Members.IsMember(ctx, org, strings.ToLower(ev.Review.Login))
 		if err != nil {
 			return rep, err
 		}
@@ -172,18 +168,60 @@ func (b *PRBridge) review(ctx context.Context, ev port.RepoEvent, rep PRReport) 
 	if err != nil {
 		return rep, err
 	}
+	// everything under the org lock is ledger work; GitHub I/O happens after
+	var (
+		body, conclusion, title string
+		nudge                   string
+	)
 	o.mu.Lock()
-	defer o.mu.Unlock()
-	if err := o.catchUp(ctx); err != nil {
+	rep, judged, err := b.judge(ctx, o, ev, rep)
+	if err == nil && rep.Change != "" {
+		ch, _ := o.Changes.Get(core.ID(rep.Change))
+		if judged {
+			body, conclusion, title = renderPR(o, ch, true, ev.HeadSHA)
+		} else if strings.Contains(rep.Skipped, "no-reason") {
+			nudge = renderPRWithNote(o, ch, ev.HeadSHA, "A review on a change with impact needs a reason: add one to the review body so keelage can record the judgment.")
+		}
+	}
+	o.mu.Unlock()
+	if err != nil || b.Reporter == nil {
 		return rep, err
+	}
+	if nudge != "" {
+		_ = b.Reporter.UpsertComment(ctx, ev.Installation, ev.Owner, ev.Repo, ev.Number, CommentMarker, nudge)
+		return rep, nil
+	}
+	if !judged {
+		return rep, nil
+	}
+	if err := b.Reporter.UpsertComment(ctx, ev.Installation, ev.Owner, ev.Repo, ev.Number, CommentMarker, body); err != nil {
+		return rep, err
+	}
+	rep.Commented = true
+	if err := b.Reporter.Check(ctx, ev.Installation, ev.Owner, ev.Repo, ev.HeadSHA, CheckName, conclusion, title, body); err != nil {
+		return rep, err
+	}
+	rep.Check = conclusion
+	return rep, nil
+}
+
+// judge records the review as a judgment (caller holds o.mu). judged is
+// true when a new Judged record was written.
+func (b *PRBridge) judge(ctx context.Context, o *Org, ev port.RepoEvent, rep PRReport) (PRReport, bool, error) {
+	if err := o.catchUp(ctx); err != nil {
+		return rep, false, err
 	}
 	ch, ok := o.Changes.ByRef(ev.HeadSHA)
 	if !ok {
 		rep.Skipped = "no change for " + ev.HeadSHA
-		return rep, nil
+		return rep, false, nil
 	}
 	rep.Change = string(ch.ID)
-	reviewer := core.ActorRef{Kind: core.ActorHuman, ID: core.ID(ev.Review.Login)}
+	decision := accountability.DecisionAccept
+	if ev.Review.State == "changes_requested" {
+		decision = accountability.DecisionReject
+	}
+	reviewer := core.ActorRef{Kind: core.ActorHuman, ID: core.ID(strings.ToLower(ev.Review.Login))}
 	at := ev.Review.SubmittedAt
 	if at.IsZero() {
 		at = b.Clock.Now()
@@ -199,29 +237,12 @@ func (b *PRBridge) review(ctx context.Context, ev port.RepoEvent, rep PRReport) 
 	if err != nil {
 		if r, isRej := core.AsRejection(err); isRej {
 			rep.Skipped = "review not recorded: " + r.Error()
-			if b.Reporter != nil && r.Code == "no-reason" {
-				_ = b.Reporter.UpsertComment(ctx, ev.Installation, ev.Owner, ev.Repo, ev.Number, CommentMarker,
-					renderPRWithNote(o, ch, ev.HeadSHA, "A review on a change with impact needs a reason: add one to the review body so keelage can record the judgment."))
-			}
-			return rep, nil
+			return rep, false, nil
 		}
-		return rep, err
+		return rep, false, err
 	}
 	rep.Judged = !res.Replayed
-	if b.Reporter == nil {
-		return rep, nil
-	}
-	ch, _ = o.Changes.ByRef(ev.HeadSHA)
-	body, conclusion, title := renderPR(o, ch, true, ev.HeadSHA)
-	if err := b.Reporter.UpsertComment(ctx, ev.Installation, ev.Owner, ev.Repo, ev.Number, CommentMarker, body); err != nil {
-		return rep, err
-	}
-	rep.Commented = true
-	if err := b.Reporter.Check(ctx, ev.Installation, ev.Owner, ev.Repo, ev.HeadSHA, CheckName, conclusion, title, body); err != nil {
-		return rep, err
-	}
-	rep.Check = conclusion
-	return rep, nil
+	return rep, rep.Judged, nil
 }
 
 func renderPRWithNote(o *Org, ch ChangeSummary, sha, note string) string {
@@ -289,8 +310,8 @@ func firstLine(s string) string {
 	if i := strings.IndexByte(s, '\n'); i >= 0 {
 		s = s[:i]
 	}
-	if len(s) > 120 {
-		s = s[:117] + "…"
+	if r := []rune(s); len(r) > 120 {
+		s = string(r[:117]) + "…"
 	}
 	return s
 }
