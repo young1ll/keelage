@@ -25,6 +25,8 @@ tags:
     description: 데몬↔서버 연합 로그 (spec §3.6c, patterns §9).
   - name: ledger
     description: 투명성 로그 증명 (ADR 0004).
+  - name: webhooks
+    description: GitHub App 배달 (spec §4.5, ADR 0016).
   - name: harness
   - name: changes
 paths:
@@ -223,6 +225,20 @@ paths:
                   events: { type: array, items: { $ref: "schema/event.json" } }
                   more: { type: boolean }
 
+  /webhooks/github:
+    post:
+      tags: [webhooks]
+      security: []
+      operationId: githubWebhook
+      summary: GitHub App 웹훅 (ADR 0016) — `X-Hub-Signature-256` HMAC 없이는 401, 미설정이면 503
+      description: |
+        `installation`(created) → installation ↔ org. `pull_request`(opened·reopened·synchronize) → head SHA의 Change(데몬이 push한 것)로
+        코멘트 upsert(`<!-- keelage:pr -->`) + check run `keelage`(success | neutral). `pull_request_review`(submitted, approved·changes_requested,
+        org 멤버, 이유 있음) → `Judged`. 서버는 리포를 클론하지 않는다.
+      responses:
+        "202": { description: "처리 결과 {kind, org, change, commented, check, judged, skipped}" }
+        "401": { description: 서명 불일치 }
+        "503": { description: 웹훅 미설정 }
   /ledger/key:
     get:
       tags: [ledger]

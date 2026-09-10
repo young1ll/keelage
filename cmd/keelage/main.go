@@ -94,7 +94,7 @@ func daemonCmd() *cobra.Command {
 			if sock == "" {
 				sock = filepath.Join(rt.home, "keelage.sock")
 			}
-			log.Info("daemon starting", "version", version, "socket", sock, "ledger_seq", rt.seq)
+			log.Info("daemon starting", "version", version, "socket", sock, "ledger_seq", rt.cursor.Seq())
 
 			r := httpapi.New("keelage", version)
 			svc := &synced{rt: rt}

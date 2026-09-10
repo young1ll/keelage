@@ -97,27 +97,26 @@ type Org struct {
 	Gates       *GateIndex
 	Pipeline    *Pipeline
 
-	mu  sync.Mutex
-	seq int64
+	mu     sync.Mutex
+	cursor *Cursor
 }
 
 func (o *Org) projectors() []port.Projector {
-	return []port.Projector{o.Scopes, o.Constraints, o.Changes, o.Anchors, o.Decisions, o.Gates}
+	return []port.Projector{o.Scopes, o.Constraints, o.Changes, o.Anchors, o.Decisions, o.Gates, o.cursor}
 }
 
-// catchUp projects records appended outside the pipeline (sync).
+// catchUp projects records appended outside the pipeline (sync). The
+// cursor projector moves with pipeline writes too, so nothing is applied
+// twice.
 func (o *Org) catchUp(ctx context.Context) error {
 	head, err := o.Ledger.Head(ctx)
 	if err != nil {
 		return err
 	}
-	if head.Seq <= o.seq {
+	if head.Seq <= o.cursor.Seq() {
 		return nil
 	}
-	seq, err := Replay(ctx, o.Ledger, o.Codec, o.seq, o.projectors()...)
-	if err == nil {
-		o.seq = seq
-	}
+	_, err = Replay(ctx, o.Ledger, o.Codec, o.cursor.Seq(), o.projectors()...)
 	return err
 }
 
@@ -152,9 +151,9 @@ func (r *Orgs) Get(ctx context.Context, id string) (*Org, error) {
 	o := &Org{
 		ID: id, Ledger: ledger, Codec: r.Codec,
 		Scopes: NewScopeIndex(), Constraints: NewConstraintIndex(), Changes: NewChangeIndex(), Anchors: NewAnchorIndex(),
-		Decisions: NewDecisionIndex(), Gates: NewGateIndex(),
+		Decisions: NewDecisionIndex(), Gates: NewGateIndex(), cursor: &Cursor{},
 	}
-	if o.seq, err = Rebuild(ctx, ledger, r.Codec, o.projectors()...); err != nil {
+	if _, err = Rebuild(ctx, ledger, r.Codec, o.projectors()...); err != nil {
 		return nil, err
 	}
 	o.Pipeline = New(Options{

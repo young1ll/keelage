@@ -1,0 +1,9 @@
+github-app 2026-09-10
+source: github/rest-api-description (api.github.com OpenAPI) + github/docs (JWT, installation token, webhook validation)
+verified: JWT RS256 {iat: now-60, exp: <= now+600, iss: app id} as Bearer → POST /app/installations/{id}/access_tokens → {token, expires_at}
+          webhook headers X-GitHub-Event, X-GitHub-Delivery, X-Hub-Signature-256 = "sha256=" + hex(HMAC-SHA256(secret, body))
+          payloads: pull_request{action: opened|synchronize, number, pull_request{head{sha}, html_url, title}, repository{name, owner{login}}, installation{id}}
+                    pull_request_review{action: submitted, review{id, state, body, user{login}, submitted_at}, pull_request{number, head{sha}}}
+                    installation{action: created, installation{id, account{login}}}
+          REST: GET/POST /repos/{o}/{r}/issues/{n}/comments {body}; PATCH /repos/{o}/{r}/issues/comments/{id} {body}
+                POST /repos/{o}/{r}/check-runs {name, head_sha, status=completed, conclusion, output{title, summary}}

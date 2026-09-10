@@ -12,10 +12,19 @@
 
 12주 목표(한 문장): Claude Code를 쓰는 개인이 설치하면 편집 전에 자기 제약이 주입되고, 하루 작업이 Change·판단으로 남으며, 팀이 생기면 서버로 제약을 공유한다.
 
-## 써 보기 (6–7주차 기준, Claude Code)
+## 설치
 
 ```sh
+curl -fsSL https://raw.githubusercontent.com/young1ll/keelage/main/scripts/install.sh | sh   # 최신 릴리스, 체크섬 + cosign(있으면) 검증
+# 또는 소스에서
 make build && export PATH=$PWD/bin:$PATH
+```
+
+릴리스는 `v*` 태그마다 goreleaser가 만든다: macOS/Linux 바이너리, `checksums.txt`, SBOM, sigstore keyless 서명(`checksums.txt.sigstore.json`), `ghcr.io/young1ll/keelage-server` 이미지 (ADR 0016).
+
+## 써 보기 (Claude Code)
+
+```sh
 keelage setup                                      # 전역 1회: 훅 등록(백업)·MCP 등록·~/.claude/CLAUDE.md 흡수. 항목별 승인
 keelage daemon &                                   # ~/.keelage/keelage.sock, ledger.db
 keelage constraint add --scope path='src/**' --anchor 'code://src/calc.ts#fee' --verify "no retries in billing"
@@ -53,3 +62,7 @@ keelage gate ask --scope 'org=|product=|team=core|repo=|path=|person=' --proposa
 keelage gate resolve <id> --allow --reason "reviewed"                    # 사람 토큰
 keelage server proof --seq 1 | keelage verify-proof --server-key "$(keelage server key)"   # 오프라인 포함 증명
 ```
+
+셀프호스트는 `deploy/docker/compose.yaml`(서버 + Postgres). GitHub App을 붙이면(`serve --github-app-id --github-app-key --github-webhook-secret`) PR마다 head 커밋의 Change(닿은 제약·닻·판단 상태)가 코멘트와 `keelage` 체크로 보이고, 이유가 있는 승인/변경 요청 리뷰는 그 Change의 판단으로 원장에 남는다. 서버는 리포를 클론하지 않는다 — 데몬이 `sync push`한 만큼만 보인다.
+
+외부 사용자 확인 절차·기록표: `docs/metrics/external-users.md`.

@@ -12,12 +12,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/young1ll/keelage/internal/adapter/github"
+	"github.com/young1ll/keelage/internal/adapter/githubapp"
 	"github.com/young1ll/keelage/internal/adapter/httpapi"
 	"github.com/young1ll/keelage/internal/adapter/keys"
 	"github.com/young1ll/keelage/internal/adapter/postgres"
@@ -97,7 +99,7 @@ func (p *proofs) Consistency(ctx context.Context, org string, from, to uint64) (
 }
 
 func serveCmd() *cobra.Command {
-	var addr, db, keyPath, ghClientID, ghOAuth, ghAPI string
+	var addr, db, keyPath, ghClientID, ghOAuth, ghAPI, appID, appKey, webhookSecret string
 	var cpInterval, tokenTTL time.Duration
 	c := &cobra.Command{
 		Use:   "serve",
@@ -131,11 +133,27 @@ func serveCmd() *cobra.Command {
 			}
 			r := httpapi.New("keelage-server", version)
 			httpapi.MountServer(r, srvAPI)
+			// GitHub App (spec §4.5): PR comments and checks from pushed Changes, reviews → Judged
+			if appID != "" || webhookSecret != "" {
+				if appID == "" || appKey == "" || webhookSecret == "" {
+					return errors.New("--github-app-id, --github-app-key and --github-webhook-secret go together")
+				}
+				pemBytes, err := os.ReadFile(appKey)
+				if err != nil {
+					return err
+				}
+				priv, err := githubapp.ParsePrivateKey(pemBytes)
+				if err != nil {
+					return err
+				}
+				bridge := &app.PRBridge{Orgs: team.Orgs, Reporter: &githubapp.App{AppID: appID, PrivateKey: priv, APIBase: ghAPI}, Installs: store, Members: store, Clock: clock{}}
+				httpapi.MountWebhooks(r, webhookSecret, bridge.Sink(githubapp.Parse))
+			}
 			srv := &http.Server{Addr: addr, Handler: r, ReadHeaderTimeout: 5 * time.Second}
 			errc := make(chan error, 1)
 			go func() { errc <- srv.ListenAndServe() }()
 			go checkpointWorker(ctx, log, store, key, cpInterval)
-			log.Info("server starting", "version", version, "addr", addr, "public_key", keys.EncodePublic(key.Public), "device_login", ghClientID != "")
+			log.Info("server starting", "version", version, "addr", addr, "public_key", keys.EncodePublic(key.Public), "device_login", ghClientID != "", "github_app", appID != "")
 			select {
 			case err := <-errc:
 				return err
@@ -156,6 +174,9 @@ func serveCmd() *cobra.Command {
 	c.Flags().StringVar(&ghClientID, "github-client-id", os.Getenv("KEELAGE_GITHUB_CLIENT_ID"), "GitHub OAuth app client id for device login (or $KEELAGE_GITHUB_CLIENT_ID)")
 	c.Flags().StringVar(&ghOAuth, "github-oauth-base", "", "GitHub OAuth base URL (default https://github.com)")
 	c.Flags().StringVar(&ghAPI, "github-api-base", "", "GitHub API base URL (default https://api.github.com)")
+	c.Flags().StringVar(&appID, "github-app-id", os.Getenv("KEELAGE_GITHUB_APP_ID"), "GitHub App id (PR comments·checks; or $KEELAGE_GITHUB_APP_ID)")
+	c.Flags().StringVar(&appKey, "github-app-key", os.Getenv("KEELAGE_GITHUB_APP_KEY"), "GitHub App private key PEM file (or $KEELAGE_GITHUB_APP_KEY)")
+	c.Flags().StringVar(&webhookSecret, "github-webhook-secret", os.Getenv("KEELAGE_GITHUB_WEBHOOK_SECRET"), "webhook secret for /webhooks/github (or $KEELAGE_GITHUB_WEBHOOK_SECRET)")
 	c.Flags().DurationVar(&cpInterval, "checkpoint-interval", 10*time.Minute, "how often to sign a checkpoint for orgs whose ledger moved")
 	c.Flags().DurationVar(&tokenTTL, "token-ttl", 90*24*time.Hour, "lifetime of tokens issued by device login (0: no expiry)")
 	return c
@@ -237,8 +258,29 @@ func orgCmd() *cobra.Command {
 			return nil
 		},
 	}
+	link := &cobra.Command{
+		Use:   "link-installation <org> <installation-id>",
+		Short: "Bind a GitHub App installation to an org (the `installation` webhook does this automatically)",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf("installation id: %w", err)
+			}
+			s, err := openStore(cmd.Context(), db, nil)
+			if err != nil {
+				return err
+			}
+			defer func() { _ = s.Close() }()
+			if err := s.LinkInstallation(cmd.Context(), id, args[0]); err != nil {
+				return err
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "installation %d → org %s\n", id, args[0])
+			return nil
+		},
+	}
 	c.PersistentFlags().StringVar(&db, "db", os.Getenv("KEELAGE_DB"), "postgres DSN (or $KEELAGE_DB)")
-	c.AddCommand(create, list)
+	c.AddCommand(create, list, link)
 	return c
 }
 
