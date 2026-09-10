@@ -1,0 +1,8 @@
+/bin/
+/dist/
+*.db
+*.db-wal
+*.db-shm
+.kb/context/
+node_modules/
+web/dist/

@@ -1,0 +1,275 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 940" font-family="Helvetica, Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo1M2U2OWY1MS1hMjIwLTQ0ZGQtYjdkZS1jYTMxNjAzZTk1YmQAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaPWIcm7/jgQuQARjtdJoSpQAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpkNzgwMWM3Mi0wZWRlLTRmY2ItYTM2Yy04NGNjZGI3MDRlN2JscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoUmOz1PQAUgfzcDHftjqgQAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggPIFUsQN4bEJQILLN3RiMQSt7w6Inoo9AeyxisuMBJmmkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaJ95I+UGrPNll0ClaifGeoUAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCDICihUOd5QJ9Op8I3zN/A3PMcbbopBaqvLCv96vfoX5WRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjhZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjUzZTY5ZjUxLWEyMjAtNDRkZC1iN2RlLWNhMzE2MDNlOTViZC9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmEwYzljYWU4LWM2MjgtNDJjNC1iYjk2LTNhODZjNGE3ZDI1NHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCA8gVSxA3hsQlAgss3dGIxBK3vDoieij0B7LGKy4wEmaaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg6JtcQujmUMkuxqsGUm8X5D1gXrTgywwwD3Hz6jPMO02iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggKmv3uQGNjDhOhTrCb6k9QwIoPlDgd8prNIgC42jm/3Z0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQFew0vvXm/XDlXbTONQ6aeEWAWTm6Bd+Em6oP3uplsAdepPUOfRxZtbHcnmAhvhdpGLusLFvnM7kOY+GWnkDLL4=</c2pa:manifest></metadata>
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#232F3E"/>
+    </marker>
+    <marker id="arg" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7A7A7A"/>
+    </marker>
+    <style>
+      .t{font-size:12px;fill:#232F3E}
+      .ts{font-size:10.5px;fill:#545B64}
+      .tt{font-size:13px;font-weight:700;fill:#232F3E}
+      .tw{font-size:11px;font-weight:700;fill:#fff}
+      .grp{fill:none;stroke-width:1.5}
+      .svc{stroke:#232F3E;stroke-width:1}
+      .ln{fill:none;stroke:#232F3E;stroke-width:1.4;marker-end:url(#ar)}
+      .lnd{fill:none;stroke:#7A7A7A;stroke-width:1.4;stroke-dasharray:5 4;marker-end:url(#arg)}
+      .lbl{font-size:10.5px;fill:#232F3E}
+      .lblbg{fill:#fff}
+    </style>
+  </defs>
+  <rect width="1500" height="940" fill="#FFFFFF"/>
+  <text x="30" y="34" class="tt" font-size="17">AI 시대 팀 워크벤치 — 배치 아키텍처 (v0/v1)</text>
+  <text x="30" y="52" class="ts">로컬 퍼스트 데몬 + 원격 팀 서버(AWS 호스팅 또는 셀프호스트). 실선 = 아웃바운드 호출, 점선 = 웹훅/폴백. 데몬→서버만 연결(서버는 데몬에 접속하지 않음).</text>
+
+  <!-- ===== Developer machine ===== -->
+  <rect x="30" y="80" width="400" height="560" rx="6" class="grp" stroke="#232F3E" stroke-dasharray="6 4"/>
+  <rect x="30" y="80" width="150" height="22" fill="#232F3E"/>
+  <text x="38" y="96" class="tw">개발자 머신 (팀원 각자)</text>
+
+  <!-- AI tools -->
+  <rect x="50" y="120" width="360" height="110" rx="4" fill="#F2F3F3" stroke="#879596"/>
+  <text x="60" y="138" class="tt">AI 코딩 도구</text>
+  <rect x="60" y="150" width="105" height="60" rx="3" fill="#fff" class="svc"/>
+  <text x="70" y="170" class="t">Claude Code</text>
+  <text x="70" y="186" class="ts">훅(pre/post edit,</text>
+  <text x="70" y="199" class="ts">session) · MCP(stdio)</text>
+  <rect x="175" y="150" width="105" height="60" rx="3" fill="#fff" class="svc"/>
+  <text x="185" y="170" class="t">Cursor (v1)</text>
+  <text x="185" y="186" class="ts">규칙 파일 렌더</text>
+  <text x="185" y="199" class="ts">MCP</text>
+  <rect x="290" y="150" width="110" height="60" rx="3" fill="#fff" class="svc"/>
+  <text x="300" y="170" class="t">OpenClaw 등 로컬 에이전트</text>
+  <text x="300" y="186" class="ts">SOUL.md·AGENTS.md 개인 층</text>
+  <text x="300" y="199" class="ts">훅 없음 → git 신호·MCP·/gates</text>
+
+  <!-- daemon -->
+  <rect x="50" y="260" width="360" height="230" rx="4" fill="#FFF3E0" stroke="#FF9900" stroke-width="1.5"/>
+  <text x="60" y="280" class="tt">kb 데몬 (Go 단일 바이너리)</text>
+  <rect x="60" y="292" width="165" height="42" rx="3" fill="#fff" class="svc"/>
+  <text x="68" y="309" class="t">훅 엔드포인트 (UDS)</text>
+  <text x="68" y="323" class="ts">fail-open · 50ms 예산</text>
+  <rect x="235" y="292" width="165" height="42" rx="3" fill="#fff" class="svc"/>
+  <text x="243" y="309" class="t">로컬 MCP 서버</text>
+  <text x="243" y="323" class="ts">what_touches · related · 리소스</text>
+  <rect x="60" y="342" width="165" height="42" rx="3" fill="#fff" class="svc"/>
+  <text x="68" y="359" class="t">닻 해석기</text>
+  <text x="68" y="373" class="ts">tree-sitter(wasm) · 3층 해시</text>
+  <rect x="235" y="342" width="165" height="42" rx="3" fill="#fff" class="svc"/>
+  <text x="243" y="359" class="t">Context 합성·렌더</text>
+  <text x="243" y="373" class="ts">개인 ∪ 팀 · managed 블록</text>
+  <rect x="60" y="392" width="165" height="42" rx="3" fill="#fff" class="svc"/>
+  <text x="68" y="409" class="t">세션 캡처 · Change 도출</text>
+  <text x="68" y="423" class="ts">턴 분류 · post-commit</text>
+  <rect x="235" y="392" width="165" height="42" rx="3" fill="#fff" class="svc"/>
+  <text x="243" y="409" class="t">sync 클라이언트</text>
+  <text x="243" y="423" class="ts">push@commit/share · pull 제약</text>
+  <rect x="60" y="442" width="340" height="38" rx="3" fill="#E8F0FE" stroke="#527FFF"/>
+  <text x="68" y="459" class="t">개인 원장 (SQLite, 해시 체인) — 세션·판단·개인 제약. 머신을 떠나지 않음</text>
+  <text x="68" y="473" class="ts">~/.kb/ledger.db · keys/ · cache/</text>
+
+  <!-- repo -->
+  <rect x="50" y="510" width="360" height="110" rx="4" fill="#F2F3F3" stroke="#879596"/>
+  <text x="60" y="528" class="tt">로컬 리포</text>
+  <rect x="60" y="540" width="160" height="66" rx="3" fill="#fff" class="svc"/>
+  <text x="68" y="557" class="t">코드 (실현체)</text>
+  <text x="68" y="571" class="ts">git 훅: post-commit</text>
+  <text x="68" y="585" class="ts">pre-push → 영향 계산·서명</text>
+  <rect x="230" y="540" width="170" height="66" rx="3" fill="#fff" class="svc"/>
+  <text x="238" y="557" class="t">렌더된 규칙 파일</text>
+  <text x="238" y="571" class="ts">CLAUDE.md · .cursor/rules</text>
+  <text x="238" y="585" class="ts">.kb/manifest.json (사이드카)</text>
+
+  <!-- arrows inside machine -->
+  <path d="M112,210 L112,292" class="ln"/>
+  <text x="118" y="250" class="lbl">훅 이벤트</text>
+  <path d="M230,210 L300,292" class="ln"/>
+  <text x="250" y="240" class="lbl">MCP</text>
+  <path d="M140,540 L140,434" class="ln"/>
+  <text x="146" y="500" class="lbl">git 훅</text>
+  <path d="M317,434 L317,540" class="ln"/>
+  <text x="323" y="500" class="lbl">렌더/가져오기</text>
+
+  <!-- ===== GitHub ===== -->
+  <rect x="480" y="80" width="300" height="220" rx="6" class="grp" stroke="#232F3E" stroke-dasharray="6 4"/>
+  <rect x="480" y="80" width="80" height="22" fill="#232F3E"/>
+  <text x="488" y="96" class="tw">GitHub</text>
+  <rect x="500" y="120" width="260" height="50" rx="3" fill="#fff" class="svc"/>
+  <text x="510" y="139" class="t">리포 · PR · Deployments</text>
+  <text x="510" y="155" class="ts">md는 렌더 결과. 원천 아님</text>
+  <rect x="500" y="180" width="125" height="50" rx="3" fill="#fff" class="svc"/>
+  <text x="508" y="199" class="t">GitHub App</text>
+  <text x="508" y="214" class="ts">webhook · 코멘트·체크</text>
+  <rect x="635" y="180" width="125" height="50" rx="3" fill="#fff" class="svc"/>
+  <text x="643" y="199" class="t">Actions (폴백)</text>
+  <text x="643" y="214" class="ts">헤드리스 데몬</text>
+  <rect x="500" y="240" width="260" height="46" rx="3" fill="#F2F3F3" stroke="#879596"/>
+  <text x="510" y="258" class="ts">외부 기여자·데몬 없는 리포·CI 게이트에서만</text>
+  <text x="510" y="272" class="ts">영향 계산 → 서명 결과 POST</text>
+
+  <!-- ===== AWS Cloud ===== -->
+  <rect x="830" y="80" width="640" height="720" rx="6" class="grp" stroke="#232F3E"/>
+  <rect x="830" y="80" width="110" height="22" fill="#232F3E"/>
+  <text x="838" y="96" class="tw">AWS Cloud</text>
+  <text x="950" y="96" class="ts">호스팅 (셀프호스트는 동일 이미지 + compose / Terraform)</text>
+
+  <!-- Region -->
+  <rect x="850" y="115" width="600" height="600" rx="6" fill="none" stroke="#00A4A6" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="860" y="132" class="t" fill="#00A4A6">Region ap-northeast-2</text>
+
+  <!-- VPC -->
+  <rect x="865" y="145" width="570" height="440" rx="6" fill="none" stroke="#8C4FFF" stroke-width="1.5"/>
+  <text x="875" y="162" class="t" fill="#8C4FFF">VPC</text>
+
+  <!-- Public subnet -->
+  <rect x="880" y="175" width="540" height="90" rx="4" fill="#F0FFF4" stroke="#7AA116"/>
+  <text x="890" y="192" class="ts" fill="#3F6E11">Public subnet (×2 AZ)</text>
+  <rect x="905" y="200" width="120" height="50" rx="3" fill="#FF9900" class="svc"/>
+  <text x="915" y="220" class="tw">ALB + WAF</text>
+  <text x="915" y="236" class="tw" font-weight="400">TLS 종단 · 레이트리밋</text>
+  <rect x="1060" y="200" width="150" height="50" rx="3" fill="#8C4FFF" class="svc"/>
+  <text x="1070" y="220" class="tw">Route53 · ACM</text>
+  <text x="1070" y="236" class="tw" font-weight="400">api.&lt;domain&gt;</text>
+  <rect x="1245" y="200" width="160" height="50" rx="3" fill="#7AA116" class="svc"/>
+  <text x="1255" y="220" class="tw">NAT Gateway</text>
+  <text x="1255" y="236" class="tw" font-weight="400">아웃바운드(GitHub·TSA)</text>
+
+  <!-- Private subnet app -->
+  <rect x="880" y="280" width="540" height="150" rx="4" fill="#FFF8EC" stroke="#FF9900"/>
+  <text x="890" y="297" class="ts" fill="#B25E00">Private subnet — app (×2 AZ)</text>
+  <rect x="905" y="308" width="240" height="108" rx="3" fill="#fff" stroke="#FF9900" stroke-width="1.5"/>
+  <text x="915" y="327" class="tt">ECS Fargate · kb-server ×2</text>
+  <text x="915" y="344" class="ts">HTTP API(OpenAPI) · 웹 UI(embed)</text>
+  <text x="915" y="358" class="ts">sync · 승인 브로커 /gates · 원격 MCP(v1)</text>
+  <text x="915" y="372" class="ts">워커: checkpoint · outbound · outcome</text>
+  <text x="915" y="386" class="ts">projector-async (advisory lock 단일 실행)</text>
+  <text x="915" y="404" class="ts">무상태 · 롤링 배포 · 이미지 ECR</text>
+  <rect x="1165" y="308" width="240" height="108" rx="3" fill="#fff" class="svc"/>
+  <text x="1175" y="327" class="tt">동일 컨테이너 내 논리 모듈</text>
+  <text x="1175" y="344" class="ts">Accountability(원장·머클) · Harness</text>
+  <text x="1175" y="358" class="ts">Realization(finding) · Supply(합성)</text>
+  <text x="1175" y="372" class="ts">Work(dispatch) · GitHub 어댑터</text>
+  <text x="1175" y="390" class="ts">인바운드 웹훅 → 테이블 → 워커(멱등)</text>
+  <text x="1175" y="404" class="ts">아웃바운드 → 아웃박스 → GitHub API</text>
+
+  <!-- Private subnet data -->
+  <rect x="880" y="445" width="540" height="125" rx="4" fill="#EEF3FF" stroke="#527FFF"/>
+  <text x="890" y="462" class="ts" fill="#2D4FB8">Private subnet — data (×2 AZ)</text>
+  <rect x="905" y="473" width="240" height="85" rx="3" fill="#527FFF" class="svc"/>
+  <text x="915" y="493" class="tw">RDS PostgreSQL 16 (Multi-AZ)</text>
+  <text x="915" y="509" class="tw" font-weight="400">event(org 파티션) · merkle_node · checkpoint</text>
+  <text x="915" y="523" class="tw" font-weight="400">투영 테이블 · graph_edge · RLS(org_id)</text>
+  <text x="915" y="541" class="tw" font-weight="400">스냅샷 일 1회 · PITR</text>
+  <rect x="1165" y="473" width="115" height="85" rx="3" fill="#7AA116" class="svc"/>
+  <text x="1173" y="493" class="tw">EFS (임시)</text>
+  <text x="1173" y="509" class="tw" font-weight="400">폴백 계산용</text>
+  <text x="1173" y="523" class="tw" font-weight="400">작업 디스크</text>
+  <rect x="1290" y="473" width="115" height="85" rx="3" fill="#8C4FFF" class="svc"/>
+  <text x="1298" y="493" class="tw">KMS (v1)</text>
+  <text x="1298" y="509" class="tw" font-weight="400">체크포인트</text>
+  <text x="1298" y="523" class="tw" font-weight="400">서명 키</text>
+
+  <!-- Region-level services -->
+  <rect x="865" y="600" width="130" height="95" rx="3" fill="#8C4FFF" class="svc"/>
+  <text x="873" y="620" class="tw">Secrets Manager</text>
+  <text x="873" y="636" class="tw" font-weight="400">GitHub App 키</text>
+  <text x="873" y="650" class="tw" font-weight="400">OIDC 클라이언트</text>
+  <text x="873" y="664" class="tw" font-weight="400">DB 자격증명</text>
+  <rect x="1010" y="600" width="130" height="95" rx="3" fill="#FF9900" class="svc"/>
+  <text x="1018" y="620" class="tw">ECR</text>
+  <text x="1018" y="636" class="tw" font-weight="400">kb-server 이미지</text>
+  <text x="1018" y="650" class="tw" font-weight="400">cosign 서명·SBOM</text>
+  <rect x="1155" y="600" width="130" height="95" rx="3" fill="#E7157B" class="svc"/>
+  <text x="1163" y="620" class="tw">CloudWatch</text>
+  <text x="1163" y="636" class="tw" font-weight="400">로그 · 알람</text>
+  <text x="1163" y="650" class="tw" font-weight="400">OTLP → Grafana</text>
+  <text x="1163" y="664" class="tw" font-weight="400">Cloud(dogfood)</text>
+  <rect x="1300" y="600" width="135" height="95" rx="3" fill="#7AA116" class="svc"/>
+  <text x="1308" y="620" class="tw">S3</text>
+  <text x="1308" y="636" class="tw" font-weight="400">감사 패키지 내보내기</text>
+  <text x="1308" y="650" class="tw" font-weight="400">(v1) · 백업 사본</text>
+
+  <!-- Deployment note -->
+  <rect x="850" y="730" width="600" height="55" rx="4" fill="#F2F3F3" stroke="#879596"/>
+  <text x="860" y="748" class="ts">배포: GitHub Actions → goreleaser → ECR → ECS 롤링. 마이그레이션 goose(add-only). Terraform 모듈 동일 구성.</text>
+  <text x="860" y="764" class="ts">셀프호스트: compose(kb-server + postgres). 스키마·바이너리 동일, org 1개. 원격 MCP·TSA 앵커링은 v1.</text>
+  <text x="860" y="778" class="ts">테넌트 격리: RLS(app.org_id). 서버는 세션 원문을 받지 않음. 이벤트는 meta/body 분리 해시.</text>
+
+  <!-- ===== External ===== -->
+  <rect x="480" y="330" width="300" height="310" rx="6" class="grp" stroke="#232F3E" stroke-dasharray="6 4"/>
+  <rect x="480" y="330" width="90" height="22" fill="#232F3E"/>
+  <text x="488" y="346" class="tw">외부 연동</text>
+  <rect x="500" y="368" width="260" height="46" rx="3" fill="#fff" class="svc"/>
+  <text x="510" y="386" class="t">OIDC IdP (GitHub 로그인 → Google·자체 IdP)</text>
+  <text x="510" y="402" class="ts">사용자 인증 · 키리스 서명(v1)</text>
+  <rect x="500" y="424" width="260" height="46" rx="3" fill="#fff" class="svc"/>
+  <text x="510" y="442" class="t">배포 프로바이더 · 오류율 (Vercel · Sentry · Datadog)</text>
+  <text x="510" y="458" class="ts">deployment/outcome 웹훅 → 결과 창</text>
+  <rect x="500" y="480" width="260" height="46" rx="3" fill="#fff" class="svc"/>
+  <text x="510" y="498" class="t">TSA (RFC 3161) · 증인 (v1)</text>
+  <text x="510" y="514" class="ts">체크포인트 외부 앵커링 플러그인</text>
+  <rect x="500" y="536" width="260" height="46" rx="3" fill="#fff" class="svc"/>
+  <text x="510" y="554" class="t">상시 클라우드 에이전트 (Grok Bot 등) · CI</text>
+  <text x="510" y="570" class="ts">승인 브로커 /gates (v0) · 헤드리스 데몬 · 원격 MCP(v1)</text>
+  <rect x="500" y="592" width="260" height="36" rx="3" fill="#F2F3F3" stroke="#879596"/>
+  <text x="510" y="614" class="ts">AI 프로바이더(BYOK)는 데몬에서만 호출(v1). 서버는 호출 안 함</text>
+
+  <!-- ===== Cross arrows ===== -->
+  <!-- daemon sync -> ALB -->
+  <path d="M410,412 C600,412 700,225 905,225" class="ln"/>
+  <rect x="640" y="304" width="150" height="16" class="lblbg"/>
+  <text x="643" y="316" class="lbl">sync push/pull · HTTPS(아웃바운드만)</text>
+  <!-- repo push -> GitHub -->
+  <path d="M410,565 C440,565 450,145 500,145" class="ln"/>
+  <rect x="418" y="330" width="60" height="16" class="lblbg"/>
+  <text x="421" y="342" class="lbl">git push</text>
+  <!-- GitHub webhook -> ALB -->
+  <path d="M760,205 C800,205 850,215 905,222" class="lnd"/>
+  <rect x="775" y="185" width="70" height="16" class="lblbg"/>
+  <text x="778" y="197" class="lbl">웹훅(PR·배포)</text>
+  <!-- server -> GitHub comments -->
+  <path d="M905,330 C830,330 800,230 762,222" class="ln"/>
+  <rect x="790" y="268" width="90" height="16" class="lblbg"/>
+  <text x="793" y="280" class="lbl">코멘트·체크(아웃박스)</text>
+  <!-- Actions -> ALB -->
+  <path d="M760,260 C800,260 850,232 905,228" class="lnd"/>
+  <!-- external webhooks -> ALB -->
+  <path d="M760,447 C830,447 860,240 905,232" class="lnd"/>
+  <rect x="790" y="405" width="110" height="16" class="lblbg"/>
+  <text x="793" y="417" class="lbl">outcome 웹훅 (점선)</text>
+  <!-- server -> TSA -->
+  <path d="M905,395 C830,395 830,503 760,503" class="ln"/>
+  <rect x="790" y="470" width="80" height="16" class="lblbg"/>
+  <text x="793" y="482" class="lbl">체크포인트 앵커링</text>
+  <!-- ALB -> ECS -->
+  <path d="M965,250 L965,308" class="ln"/>
+  <!-- ECS -> RDS -->
+  <path d="M1025,416 L1025,473" class="ln"/>
+  <!-- ECS -> Secrets -->
+  <path d="M930,416 C930,560 930,600 930,600" class="ln"/>
+  <!-- cloud agent -> gates -->
+  <path d="M760,558 C840,558 870,245 905,236" class="ln"/>
+  <rect x="800" y="530" width="120" height="16" class="lblbg"/>
+  <text x="803" y="542" class="lbl">POST /gates (승인 요청)</text>
+  <!-- OIDC -->
+  <path d="M410,300 C470,300 480,391 500,391" class="lnd"/>
+  <rect x="418" y="285" width="60" height="16" class="lblbg"/>
+  <text x="421" y="297" class="lbl">OIDC 로그인</text>
+
+  <!-- Legend -->
+  <rect x="30" y="660" width="400" height="140" rx="4" fill="#fff" stroke="#879596"/>
+  <text x="40" y="680" class="tt">범례 · 원칙</text>
+  <rect x="40" y="692" width="14" height="14" fill="#FF9900"/><text x="60" y="704" class="ts">컴퓨트(ECS·ECR·ALB)</text>
+  <rect x="40" y="712" width="14" height="14" fill="#527FFF"/><text x="60" y="724" class="ts">데이터(RDS·원장)</text>
+  <rect x="40" y="732" width="14" height="14" fill="#8C4FFF"/><text x="60" y="744" class="ts">보안·신원(Secrets·KMS·VPC)</text>
+  <rect x="40" y="752" width="14" height="14" fill="#7AA116"/><text x="60" y="764" class="ts">스토리지·네트워크(S3·EFS·NAT)</text>
+  <text x="220" y="704" class="ts">실선: 아웃바운드 호출</text>
+  <text x="220" y="724" class="ts">점선: 웹훅 / 폴백 경로</text>
+  <text x="220" y="744" class="ts">개인 원장은 머신 밖으로 나가지 않음</text>
+  <text x="220" y="764" class="ts">서버는 데몬에 접속하지 않음(NAT 뒤 OK)</text>
+  <text x="40" y="788" class="ts">원천 = 서버 원장(팀) · 개인 원장(개인). 리포 md·CLAUDE.md는 렌더. 코드는 실현체.</text>
+
+  <text x="30" y="860" class="ts">v0 범위(12주): 데몬 전체 · 서버 최소(원장·sync·승인 브로커 /gates·GitHub App 코멘트·OIDC). v1: 원격 MCP · 웹 편집/Discussion · TSA · KMS · 감사 패키지. 용어: 하네스 = 차터(Charter).</text>
+  <text x="30" y="878" class="ts">Fargate 2×0.5vCPU + db.t4g.medium 기준 월 $150~300. 테넌트 100팀까지 구성 변경 없음.</text>
+</svg>
