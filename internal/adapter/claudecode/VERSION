@@ -1,0 +1,9 @@
+adapter: claude-code
+version: 0.1.0
+protocol: Claude Code hooks (code.claude.com/docs/en/hooks) + MCP stdio (code.claude.com/docs/en/mcp)
+checked: 2026-09-10
+events used: SessionStart, UserPromptSubmit, PreToolUse(Edit|Write|MultiEdit|NotebookEdit), PostToolUse(Edit|Write|MultiEdit|NotebookEdit|Bash), SessionEnd
+input: JSON on stdin (session_id, cwd, hook_event_name, tool_name, tool_input{file_path|notebook_path|command}, tool_response)
+output: exit 0 + JSON on stdout — PreToolUse: hookSpecificOutput{permissionDecision, permissionDecisionReason, additionalContext};
+        PostToolUse/UserPromptSubmit/SessionStart: hookSpecificOutput{additionalContext}; systemMessage for user-visible warnings
+timeout: hook handler "timeout" is in seconds; keelage's own client budget is 50 ms and fails open

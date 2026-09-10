@@ -12,7 +12,13 @@ import (
 // = offset 0). The daemon and headless commands call it at startup: the
 // daemon's projections live in memory only.
 func Rebuild(ctx context.Context, ledger port.Ledger, codec *core.Codec, projectors ...port.Projector) (int64, error) {
-	var seq int64
+	return Replay(ctx, ledger, codec, 0, projectors...)
+}
+
+// Replay projects records after seq and returns the last seq seen, so a
+// long-running daemon can catch up on writes other processes (the CLI)
+// made to the same ledger.
+func Replay(ctx context.Context, ledger port.Ledger, codec *core.Codec, seq int64, projectors ...port.Projector) (int64, error) {
 	const page = 500
 	for {
 		batch, err := ledger.ReadAll(ctx, seq+1, page)

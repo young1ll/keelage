@@ -209,3 +209,34 @@ type bogusCmd struct{}
 func (bogusCmd) Kind() string           { return "Bogus" }
 func (bogusCmd) Stream() string         { return "x" }
 func (bogusCmd) IdempotencyKey() string { return "" }
+
+func TestConstraint_AnchorsAndUpcast(t *testing.T) {
+	cmd := DraftConstraint{ID: "c1", ConstraintKind: KindRule, Scope: repo, Body: "b", Authored: true, Anchors: []string{"code://src/a.ts#f"}}
+	evs, err := (Constraint{}).Decide(cmd, dctx(human))
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := core.Replay(Constraint{}, evs)
+	if len(c.Anchors) != 1 || evs[0].Version() != 2 {
+		t.Fatalf("anchors/version: %+v %d", c, evs[0].Version())
+	}
+	cmd.Anchors = []string{"nope"}
+	if _, err := (Constraint{}).Decide(cmd, dctx(human)); code(t, err) != "invalid" {
+		t.Errorf("bad anchor: %v", err)
+	}
+	evs, err = c.Decide(RebindConstraint{NewConstraintCmd("c1", ""), []string{"code://src/b.ts#f", "code://src/a.ts"}}, dctx(human))
+	if err != nil || len(core.Replay(c, evs).Anchors) != 2 {
+		t.Fatalf("rebind: %v", err)
+	}
+	// a v1 record decodes and upcasts to v2 with no anchors
+	codec := core.NewCodec()
+	RegisterEvents(codec)
+	e, err := codec.Decode("ConstraintDrafted", 1, []byte(`{"id":"old","kind":"rule","scope":{"org":"acme"},"body":"legacy","authored":true,"at":"2026-09-10T00:00:00Z"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	v2, ok := e.(ConstraintDrafted)
+	if !ok || v2.ID != "old" || v2.Body != "legacy" || v2.Anchors != nil || v2.Version() != 2 {
+		t.Fatalf("upcast: %#v", e)
+	}
+}
