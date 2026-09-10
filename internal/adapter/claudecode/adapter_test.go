@@ -52,6 +52,10 @@ func TestNormalize(t *testing.T) {
 	if ev.Prompt != "secret" {
 		t.Error("prompt is carried transiently")
 	}
+	ev, _, _ = Normalize("PostToolUse", []byte(`{"session_id":"s1","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"git checkout -- a.ts"}}`), t0)
+	if ev.Command != "git checkout -- a.ts" {
+		t.Error("bash command is carried transiently")
+	}
 }
 
 func TestRender(t *testing.T) {

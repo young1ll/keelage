@@ -6,7 +6,7 @@
     "AnchorVerified": 1,
     "AutonomyChanged": 1,
     "CapChanged": 1,
-    "ChangeOpened": 1,
+    "ChangeOpened": 2,
     "ConstraintDemoted": 1,
     "ConstraintDrafted": 2,
     "ConstraintPromoted": 1,
@@ -24,6 +24,10 @@
     "OutcomeRecorded": 1,
     "ProposalAdded": 1,
     "Rejected": 1,
-    "Settled": 1
+    "SessionEnded": 1,
+    "SessionShared": 1,
+    "SessionStarted": 1,
+    "Settled": 1,
+    "TurnRecorded": 1
   }
 }

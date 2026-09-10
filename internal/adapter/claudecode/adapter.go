@@ -105,8 +105,10 @@ func Normalize(event string, raw []byte, now time.Time) (ev supply.Event, handle
 		ev.ToolName = in.ToolName
 		if files := editedFiles(in.ToolName, in.ToolInput); len(files) > 0 {
 			ev.Kind, ev.Files = supply.PostEdit, files
-		} else if in.ToolName == "Bash" {
-			ev.Kind, ev.OK = supply.ToolResult, true
+		} else if in.ToolName == "Bash" || in.ToolName == "PowerShell" {
+			var fi fileInput
+			_ = json.Unmarshal(in.ToolInput, &fi)
+			ev.Kind, ev.OK, ev.Command = supply.ToolResult, true, fi.Command
 		} else {
 			return supply.Event{}, false, nil
 		}

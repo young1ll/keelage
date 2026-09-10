@@ -26,3 +26,13 @@ keelage adapter claude-code print skill             # → .claude/skills/keelage
 
 이후 Claude Code가 `src/calc.ts`를 편집하기 직전에 제약·닻 상태가 컨텍스트로 주입되고, `src/vault/*` 편집은 거부된다.
 데몬이 없거나 50ms를 넘기면 훅은 아무것도 하지 않는다(fail-open).
+
+하루 작업이 남는 곳 (8주차):
+
+```sh
+keelage adapter git print post-commit > .git/hooks/post-commit && chmod +x .git/hooks/post-commit
+git commit …                 # 커밋마다 Change가 도출된다 (제약에 닿으면 판단 대기, 아니면 즉시 settle)
+keelage inbox                # 판단할 Change · stale 닻 · 미검증 제약 · 세션 판단 후보
+keelage history code://src/calc.ts#fee
+keelage sessions             # 턴 수·만진 파일·판단 후보 — 대화 원문은 어디에도 없다
+```

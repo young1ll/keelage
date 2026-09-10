@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/young1ll/keelage/internal/core"
+	"github.com/young1ll/keelage/internal/core/accountability"
 	"github.com/young1ll/keelage/internal/core/harness"
 	"github.com/young1ll/keelage/internal/core/supply"
 	"github.com/young1ll/keelage/internal/port"
@@ -48,23 +49,81 @@ type Session struct {
 	Touched   []string // repo-relative files edited, in first-touch order
 	Ended     bool
 	EndReason string
+	recorded  bool
+}
+
+// turn is the open turn of a session: the prompt that started it and the
+// files edited since. The prompt text itself is not kept.
+type turn struct {
+	open  bool
+	files []string
 }
 
 // Hooks implements port.HookService and port.ContextQuery over the daemon's
 // projections. pre_edit answers come from indexes only (no parsing), so the
 // 50 ms budget holds; the caller's deadline is honoured between steps.
+//
+// With a Pipeline it also captures sessions (spec §3.4): SessionStarted,
+// one TurnRecorded per prompt-and-edits turn classified by the fallback
+// rules (supply.ClassifyPrompt / IsRevertCommand), SessionEnded.
 type Hooks struct {
 	anchors     *AnchorIndex
 	constraints *ConstraintIndex
 	clock       port.Clock
+	pipeline    *Pipeline // nil: no capture
+	owner       core.ID
 
 	mu       sync.Mutex
 	sessions map[string]*Session
+	turns    map[string]*turn
 }
 
-// NewHooks builds the service.
+// NewHooks builds the service without session capture.
 func NewHooks(anchors *AnchorIndex, constraints *ConstraintIndex, clock port.Clock) *Hooks {
-	return &Hooks{anchors: anchors, constraints: constraints, clock: clock, sessions: map[string]*Session{}}
+	return &Hooks{anchors: anchors, constraints: constraints, clock: clock, sessions: map[string]*Session{}, turns: map[string]*turn{}}
+}
+
+// WithCapture enables session capture: events are recorded through p on
+// behalf of the agent actor "<tool>:<session>" owned by owner.
+func (h *Hooks) WithCapture(p *Pipeline, owner core.ID) *Hooks {
+	h.pipeline, h.owner = p, owner
+	return h
+}
+
+func (h *Hooks) agentFor(s *Session) core.ActorRef {
+	return core.ActorRef{Kind: core.ActorAgent, ID: core.ID(s.Tool + ":" + s.ID), Owner: h.owner}
+}
+
+func (h *Hooks) record(ctx context.Context, s *Session, cmd core.Command) error {
+	if h.pipeline == nil {
+		return nil
+	}
+	_, err := h.pipeline.Handle(ctx, h.agentFor(s), cmd)
+	if _, rej := core.AsRejection(err); rej {
+		return nil // recorded as Rejected; the hook stays silent
+	}
+	return err
+}
+
+func (h *Hooks) sessionCmd(s *Session, idem string) accountability.SessionCmd {
+	return accountability.SessionCmd{Tool: s.Tool, ID: s.ID, Idem: idem}
+}
+
+// closeTurn records the open turn with the given class and starts a new one.
+func (h *Hooks) closeTurn(ctx context.Context, s *Session, class accountability.TurnClass, signal string) error {
+	h.mu.Lock()
+	t := h.turns[s.ID]
+	if t == nil || (!t.open && len(t.files) == 0) {
+		h.mu.Unlock()
+		return nil
+	}
+	files := append([]string(nil), t.files...)
+	h.turns[s.ID] = &turn{}
+	h.mu.Unlock()
+	if len(files) == 0 && class == accountability.TurnAccept {
+		return nil // a prompt without edits is not a turn worth recording
+	}
+	return h.record(ctx, s, accountability.RecordTurn{SessionCmd: h.sessionCmd(s, ""), Class: class, Files: files, Signal: signal})
 }
 
 func (h *Hooks) session(ev supply.Event) *Session {
@@ -107,32 +166,84 @@ func (h *Hooks) Hook(ctx context.Context, ev supply.Event) (supply.Response, err
 	s := h.session(ev)
 	switch ev.Kind {
 	case supply.SessionStart:
-		return supply.Response{}, nil
+		return supply.Response{}, h.start(ctx, s)
 	case supply.Prompt:
+		if err := h.start(ctx, s); err != nil {
+			return supply.Response{}, err
+		}
 		h.mu.Lock()
 		s.Prompts++ // the text itself is dropped here
+		h.mu.Unlock()
+		// the previous turn ends with this prompt: a negation classifies it as redirect
+		class, signal := accountability.TurnAccept, ""
+		if redirect, sig := supply.ClassifyPrompt(ev.Prompt); redirect {
+			class, signal = accountability.TurnRedirect, sig
+		}
+		if err := h.closeTurn(ctx, s, class, signal); err != nil {
+			return supply.Response{}, err
+		}
+		h.mu.Lock()
+		h.turns[s.ID] = &turn{open: true}
 		h.mu.Unlock()
 		return supply.Response{}, nil
 	case supply.PreEdit:
 		return h.preEdit(ctx, s, ev)
 	case supply.PostEdit:
 		h.mu.Lock()
+		t := h.turns[s.ID]
+		if t == nil {
+			t = &turn{open: true}
+			h.turns[s.ID] = t
+		}
 		for _, f := range ev.Files {
-			if rel, ok := relPath(s.Root, f); ok && !contains(s.Touched, rel) {
-				s.Touched = append(s.Touched, rel)
+			if rel, ok := relPath(s.Root, f); ok {
+				if !contains(s.Touched, rel) {
+					s.Touched = append(s.Touched, rel)
+				}
+				if !contains(t.files, rel) {
+					t.files = append(t.files, rel)
+				}
 			}
 		}
 		h.mu.Unlock()
 		return supply.Response{}, nil
 	case supply.ToolResult:
+		if supply.IsRevertCommand(ev.Command) {
+			return supply.Response{}, h.closeTurn(ctx, s, accountability.TurnRevert, "revert-command")
+		}
 		return supply.Response{}, nil
 	case supply.SessionEnd:
+		if err := h.closeTurn(ctx, s, accountability.TurnAccept, ""); err != nil {
+			return supply.Response{}, err
+		}
 		h.mu.Lock()
 		s.Ended, s.EndReason = true, ev.Reason
 		h.mu.Unlock()
-		return supply.Response{}, nil
+		if h.pipeline == nil {
+			return supply.Response{}, nil
+		}
+		return supply.Response{}, h.record(ctx, s, accountability.EndSession{SessionCmd: h.sessionCmd(s, "session:end:"+s.ID), Reason: ev.Reason})
 	}
 	return supply.Response{}, errors.New("hook: unknown event kind " + string(ev.Kind))
+}
+
+// start records SessionStarted once per session (idempotent on the ledger).
+func (h *Hooks) start(ctx context.Context, s *Session) error {
+	if h.pipeline == nil {
+		return nil
+	}
+	h.mu.Lock()
+	started := s.recorded
+	s.recorded = true
+	h.mu.Unlock()
+	if started {
+		return nil
+	}
+	repo := ""
+	if s.Root != "" {
+		repo = RepoID(s.Root)
+	}
+	return h.record(ctx, s, accountability.StartSession{SessionCmd: h.sessionCmd(s, "session:start:"+s.ID), Repo: repo, Agent: h.agentFor(s)})
 }
 
 func contains(list []string, s string) bool {

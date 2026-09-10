@@ -57,3 +57,28 @@ type ContextQuery interface {
 	WhatTouches(ctx context.Context, anchor, repo string) (supply.Touches, error)
 	Related(ctx context.Context, id string) (supply.Related, error)
 }
+
+// Commit is what the derivation step needs to know about one commit.
+type Commit struct {
+	SHA         string
+	Parents     []string
+	AuthorEmail string
+	Message     string
+	At          time.Time
+}
+
+// FileChange is one file touched by a commit. Status is git's letter:
+// A added, M modified, D deleted, R renamed (OldPath set).
+type FileChange struct {
+	Path    string
+	OldPath string
+	Status  string
+}
+
+// Commits reads commit boundaries from the repository (git).
+type Commits interface {
+	Commit(ctx context.Context, ref string) (Commit, error)
+	ChangedIn(ctx context.Context, sha string) ([]FileChange, error)
+	// Content returns the file at a commit; ok is false when it does not exist there.
+	Content(ctx context.Context, sha, path string) (content []byte, ok bool, err error)
+}

@@ -271,3 +271,21 @@ func TestChange_Proposal(t *testing.T) {
 		t.Errorf("proposal after deploy: %v", err)
 	}
 }
+
+func TestChangeOpened_Upcast(t *testing.T) {
+	codec := core.NewCodec()
+	RegisterEvents(codec)
+	e, err := codec.Decode("ChangeOpened", 1, []byte(`{"id":"old","kind":"realization","mode":"manual","scope":{"repo":"r"},"no_intent":true,"impact":{},"autonomy_applied":"L0","by":{"kind":"human","id":"a"},"at":"2026-09-10T00:00:00Z"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	v2, ok := e.(ChangeOpened)
+	if !ok || v2.ID != "old" || v2.Sessions != nil || v2.Version() != 2 || v2.Mode != ModeManual {
+		t.Fatalf("upcast: %#v", e)
+	}
+	cmd := OpenChange{ChangeCmd: NewChangeCmd("ch1", ""), ChangeKind: KindRealization, Mode: ModeSession, Scope: team, NoIntent: true, Sessions: []string{"session/claude-code/s1"}}
+	evs, err := (Change{}).Decide(cmd, dctx(human, core.L0))
+	if err != nil || len(core.Replay(Change{}, evs).Sessions) != 1 {
+		t.Fatalf("sessions: %v", err)
+	}
+}

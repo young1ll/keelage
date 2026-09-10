@@ -30,9 +30,10 @@ type Event struct {
 	CWD       string    `json:"cwd"`
 	Files     []string  `json:"files,omitempty"` // absolute paths for pre_edit/post_edit
 	ToolName  string    `json:"tool_name,omitempty"`
-	OK        bool      `json:"ok,omitempty"`     // tool_result
-	Prompt    string    `json:"prompt,omitempty"` // transient
-	Reason    string    `json:"reason,omitempty"` // session_end
+	OK        bool      `json:"ok,omitempty"`      // tool_result
+	Command   string    `json:"command,omitempty"` // tool_result: the shell command, transient
+	Prompt    string    `json:"prompt,omitempty"`  // transient
+	Reason    string    `json:"reason,omitempty"`  // session_end
 	At        time.Time `json:"at"`
 }
 
