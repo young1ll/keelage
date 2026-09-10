@@ -96,7 +96,8 @@ func TestRenderClaudeCode_Golden(t *testing.T) {
 	}
 	// determinism
 	in := RenderInput{Repo: "r", Tool: "claude-code", Constraints: []ConstraintFact{{ID: "b", Kind: "rule", State: "verified", Body: "B"}, {ID: "a", Kind: "rule", State: "verified", Body: "A", Scope: core.ScopeKey{Team: "t"}}}}
-	if RenderClaudeCode(in)[0].Content != RenderClaudeCode(in)[0].Content {
-		t.Fatal("render must be deterministic")
+	first, second := RenderClaudeCode(in), RenderClaudeCode(in)
+	if first[0].Content != second[0].Content || !strings.Contains(first[0].Content, "team t") {
+		t.Fatal("render must be deterministic and label scopes")
 	}
 }
