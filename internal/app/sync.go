@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -36,15 +37,16 @@ type PushReport struct {
 type PullReport struct {
 	Received int   `json:"received"`
 	Cached   int   `json:"cached"`
-	Skipped  int   `json:"skipped"` // this daemon's own records, already local
+	Skipped  int   `json:"skipped"` // this daemon's own records (already local) and records already cached
 	Cursor   int64 `json:"cursor"`
 }
 
 // Syncer is the daemon side of the protocol (spec §4.4, v0: push at commit
 // or share, pull the team layer into a cache).
 type Syncer struct {
-	Local  port.Ledger
-	Cache  port.Ledger
+	Local port.Ledger
+	// Cache keeps the team layer; origin lookups make re-pulls idempotent.
+	Cache  port.OriginLedger
 	Codec  *core.Codec
 	Client port.TeamClient
 	// DaemonID is the id registered with the server (the key fingerprint).
@@ -152,7 +154,19 @@ func (s *Syncer) Pull(ctx context.Context, st *SyncState) (PullReport, error) {
 			if c.Origin == nil {
 				c.Origin = &core.Origin{DaemonID: "server", LocalSeq: e.Seq}
 			}
+			// a re-pull (cursor reset, page retried after a failure) must not
+			// cache or project a record twice
+			if _, err := s.Cache.FindOrigin(ctx, c.Origin.DaemonID, c.Origin.LocalSeq); err == nil {
+				rep.Skipped++
+				continue
+			} else if !errors.Is(err, port.ErrNotFound) {
+				return rep, err
+			}
 			rng, err := s.Cache.Append(ctx, e.Stream, port.AnyVersion, []core.Envelope{c})
+			if errors.Is(err, port.ErrDuplicateOrigin) || errors.Is(err, port.ErrDuplicateIdempotencyKey) {
+				rep.Skipped++
+				continue
+			}
 			if err != nil {
 				return rep, fmt.Errorf("sync pull: cache seq %d: %w", e.Seq, err)
 			}

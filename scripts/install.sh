@@ -3,28 +3,37 @@
 #   curl -fsSL https://raw.githubusercontent.com/young1ll/keelage/main/scripts/install.sh | sh
 # Downloads the latest release for this OS/arch, checks the sha256 from
 # checksums.txt, verifies the keyless cosign bundle when cosign is on PATH
-# (set KEELAGE_REQUIRE_COSIGN=1 to refuse installing without it), and puts
+# (KEELAGE_REQUIRE_COSIGN=1 refuses to install without it; KEELAGE_SKIP_COSIGN=1
+# skips it for unsigned test builds served via KEELAGE_RELEASE_BASE), and puts
 # `keelage` in $KEELAGE_INSTALL_DIR (default ~/.local/bin). Then: keelage setup
 set -eu
 REPO="${KEELAGE_REPO:-young1ll/keelage}"
 VERSION="${KEELAGE_VERSION:-latest}"
 DIR="${KEELAGE_INSTALL_DIR:-$HOME/.local/bin}"
+# KEELAGE_RELEASE_BASE overrides the download base (cmd/keelage/install_test.go serves a fake release)
+RELEASE_BASE="${KEELAGE_RELEASE_BASE:-}"
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"
 case "$os" in linux|darwin) ;; *) echo "install.sh: unsupported OS $os (linux, darwin)" >&2; exit 1 ;; esac
 case "$arch" in x86_64|amd64) arch=amd64 ;; arm64|aarch64) arch=arm64 ;; *) echo "install.sh: unsupported arch $arch" >&2; exit 1 ;; esac
 if [ "$VERSION" = latest ]; then
+  [ -z "$RELEASE_BASE" ] || { echo "install.sh: KEELAGE_RELEASE_BASE needs KEELAGE_VERSION" >&2; exit 1; }
   VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)"
   [ -n "$VERSION" ] || { echo "install.sh: could not resolve the latest release" >&2; exit 1; }
 fi
 ver="${VERSION#v}"
-base="https://github.com/$REPO/releases/download/$VERSION"
+base="${RELEASE_BASE:-https://github.com/$REPO/releases/download/$VERSION}"
 archive="keelage_${ver}_${os}_${arch}.tar.gz"
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 echo "keelage $VERSION ($os/$arch) → $DIR"
 curl -fsSL "$base/$archive" -o "$tmp/$archive"
 curl -fsSL "$base/checksums.txt" -o "$tmp/checksums.txt"
-if command -v cosign >/dev/null 2>&1; then
+if [ "${KEELAGE_SKIP_COSIGN:-0}" = 1 ] && [ "${KEELAGE_REQUIRE_COSIGN:-0}" = 1 ]; then
+  echo "install.sh: KEELAGE_SKIP_COSIGN and KEELAGE_REQUIRE_COSIGN cannot both be set" >&2; exit 1
+fi
+if [ "${KEELAGE_SKIP_COSIGN:-0}" = 1 ]; then
+  echo "signature: skipped (KEELAGE_SKIP_COSIGN=1)"
+elif command -v cosign >/dev/null 2>&1; then
   curl -fsSL "$base/checksums.txt.sigstore.json" -o "$tmp/checksums.txt.sigstore.json"
   cosign verify-blob "$tmp/checksums.txt" --bundle "$tmp/checksums.txt.sigstore.json" \
     --certificate-identity "https://github.com/$REPO/.github/workflows/release.yml@refs/tags/$VERSION" \

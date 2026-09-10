@@ -16,6 +16,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          check-latest: true
       - uses: golangci/golangci-lint-action@v8
         with:
           version: v2.5.0
@@ -27,7 +28,21 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          check-latest: true
       - run: make check-generated
+
+  # dependency scan (implementation-plan-v0 §7): known vulnerabilities reachable from our code fail the build
+  vuln:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      # pinned like golangci-lint; v1.1.4 is the last x/vuln that builds with the go.mod toolchain line
+      - run: go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
+      - run: govulncheck ./...
 
   test:
     runs-on: ubuntu-latest
@@ -36,5 +51,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          check-latest: true
       - run: make test
       - run: make build

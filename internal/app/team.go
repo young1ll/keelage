@@ -13,11 +13,12 @@ import (
 	"github.com/young1ll/keelage/internal/port"
 )
 
-// Shareable reports whether a stream may leave the daemon: the harness and
-// accountability objects, never a session transcript. Sessions are pushed
-// only once the person shared them (see Syncer).
+// Shareable reports whether a stream may reach the server: the harness and
+// accountability objects. A session stream carries turns and judgment
+// candidates, never a transcript, and the daemon offers it only once the
+// person shared it (see Syncer); the Rejected stream never travels.
 func Shareable(stream string) bool {
-	for _, p := range []string{"constraint/", "decision/", "scope/", "anchor/", "change/", "gate/"} {
+	for _, p := range []string{"constraint/", "decision/", "scope/", "anchor/", "change/", "gate/", "session/"} {
 		if strings.HasPrefix(stream, p) {
 			return true
 		}
@@ -215,6 +216,11 @@ func (t *TeamServer) Push(ctx context.Context, p port.Principal, req port.PushRe
 		if !record {
 			return nil
 		}
+		// project what was accepted so far first: recording the rejection
+		// moves the cursor, and nothing before it may be skipped
+		if err := org.catchUp(ctx); err != nil {
+			return err
+		}
 		return appendRejected(ctx, org.Ledger, org.Codec, org.projectors(), now, core.Rejected{
 			Command: "sync:" + e.Kind, Target: e.Stream, Code: code, Reason: reason, Actor: e.Actor,
 		})
@@ -227,6 +233,12 @@ func (t *TeamServer) Push(ctx context.Context, p port.Principal, req port.PushRe
 			return res, err
 		}
 		// the daemon's own chain must hold, and the daemon must have signed it
+		if e.Ver < 1 || e.Seq < 1 {
+			if err := reject(e, "bad-hash", "record needs a positive ver and seq", false); err != nil {
+				return res, err
+			}
+			continue
+		}
 		if err := e.Verify(e.PrevHash); err != nil {
 			if err := reject(e, "bad-hash", err.Error(), false); err != nil {
 				return res, err
@@ -243,6 +255,8 @@ func (t *TeamServer) Push(ctx context.Context, p port.Principal, req port.PushRe
 		switch {
 		case !Shareable(e.Stream):
 			code, reason = "not-shareable", "stream "+e.Stream+" is not shared"
+		case e.Actor.Validate() != nil:
+			code, reason = "unauthorized", "record actor is malformed: "+e.Actor.Validate().Error()
 		case e.Actor.IsHuman() && string(e.Actor.ID) != user, e.Actor.IsAgent() && string(e.Actor.Owner) != user:
 			code, reason = "unauthorized", "record actor is not the pushing user or an agent they own"
 		default:

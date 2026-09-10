@@ -113,8 +113,9 @@ func TestPRBridge_ImpactCommentAndReviewJudgment(t *testing.T) {
 	if !strings.Contains(rep.comments[len(rep.comments)-1], "needs a reason") {
 		t.Fatalf("no nudge:\n%s", rep.comments[len(rep.comments)-1])
 	}
-	// with a reason: Judged, comment refreshed, check success; replaying the same review changes nothing
-	r, err = b.Handle(ctx, review("approved", "matches the billing rule", "alice", 4))
+	// with a reason: Judged, comment refreshed, check success; replaying the same review changes nothing.
+	// The reviewer login is case-insensitive.
+	r, err = b.Handle(ctx, review("approved", "matches the billing rule", "Alice", 4))
 	if err != nil || !r.Judged || r.Check != "success" {
 		t.Fatalf("approve: %+v %v", r, err)
 	}

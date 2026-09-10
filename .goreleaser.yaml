@@ -65,7 +65,7 @@ dockers_v2:
       - ghcr.io/young1ll/keelage-server
     tags:
       - "v{{ .Version }}"
-      - latest
+      - "{{ if not .Prerelease }}latest{{ end }}"
     platforms: [linux/amd64, linux/arm64]
     extra_files: [deploy/docker/compose.yaml]
     labels:
@@ -89,6 +89,8 @@ release:
   github:
     owner: young1ll
     name: keelage
+  # v0.1.0-rc.1 stays a prerelease: install.sh's `latest` and the ghcr `latest` tag skip it
+  prerelease: auto
   footer: |
     ### Verify
     ```sh
