@@ -1,0 +1,9 @@
+
+
+
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"keelage · src/calc.ts:\n- anchor code://src/calc.ts#fee is recorded\n- rule (verified, keelage-sim:src/*): no retries in billing — retries double-charged customers in 2025"}}
+
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"keelage: vault code is edited by humans (autonomy L0 in keelage-sim:src/vault/* denies agent edits to src/vault/keys.ts; a human edits or raises the level)","additionalContext":"keelage · src/vault/keys.ts:\n- autonomy (verified, keelage-sim:src/vault/*): vault code is edited by humans"}}
+
+
+
