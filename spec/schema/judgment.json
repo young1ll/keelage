@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/judgment.json",
+  "$ref": "#/$defs/Judgment",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "Judgment": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "by": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string"
+        },
+        "sig": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "decision",
+        "by",
+        "at",
+        "source"
+      ],
+      "description": "Judgment is a signed decision about a change (spec §3.1)."
+    }
+  }
+}

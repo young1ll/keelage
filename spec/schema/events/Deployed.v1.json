@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/Deployed.v1.json",
+  "$ref": "#/$defs/Deployed",
+  "$defs": {
+    "Deployed": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "deployment": {
+          "$ref": "#/$defs/Deployment"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "deployment"
+      ],
+      "description": "Deployed records deployment."
+    },
+    "Deployment": {
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ref",
+        "at"
+      ],
+      "description": "Deployment records when and where the change went live."
+    }
+  }
+}

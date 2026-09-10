@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/ProposalAdded.v1.json",
+  "$ref": "#/$defs/ProposalAdded",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "Proposal": {
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "actor": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sig": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ref",
+        "actor",
+        "at"
+      ],
+      "description": "Proposal is one proposed diff (or constraint diff) by an actor."
+    },
+    "ProposalAdded": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "proposal": {
+          "$ref": "#/$defs/Proposal"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "proposal"
+      ],
+      "description": "ProposalAdded appends a proposal."
+    }
+  }
+}

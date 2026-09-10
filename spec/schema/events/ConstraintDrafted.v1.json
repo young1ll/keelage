@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/ConstraintDrafted.v1.json",
+  "$ref": "#/$defs/ConstraintDrafted",
+  "$defs": {
+    "ConstraintDrafted": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/ScopeKey"
+        },
+        "body": {
+          "type": "string"
+        },
+        "checkable": {
+          "type": "string"
+        },
+        "origin": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "authored": {
+          "type": "boolean"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ]
+        },
+        "supersedes": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "scope",
+        "body",
+        "at"
+      ],
+      "description": "ConstraintDrafted is the creation event."
+    },
+    "ScopeKey": {
+      "properties": {
+        "org": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ScopeKey is a coordinate in the scope lattice (ADR 0006): org × product × team × (repo, path glob) × person."
+    }
+  }
+}

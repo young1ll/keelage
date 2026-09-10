@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/scope.json",
+  "$ref": "#/$defs/Scope",
+  "$defs": {
+    "Scope": {
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/ScopeKey"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ]
+        },
+        "cap": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ]
+        },
+        "initialized": {
+          "type": "boolean"
+        },
+        "last_demoted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "regressions": {
+          "type": "integer"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "level",
+        "cap",
+        "initialized",
+        "regressions",
+        "updated_at"
+      ],
+      "description": "Scope holds a scope's autonomy level and cap (spec §4.2)."
+    },
+    "ScopeKey": {
+      "properties": {
+        "org": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ScopeKey is a coordinate in the scope lattice (ADR 0006): org × product × team × (repo, path glob) × person."
+    }
+  }
+}

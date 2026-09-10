@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/constraint.json",
+  "$ref": "#/$defs/Constraint",
+  "$defs": {
+    "Constraint": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/ScopeKey"
+        },
+        "body": {
+          "type": "string"
+        },
+        "checkable": {
+          "type": "string",
+          "description": "machine-checkable spec, if any"
+        },
+        "origin": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Origin lists the judgments this constraint was promoted from; Authored\nmarks a hand-written one. At least one must hold."
+        },
+        "authored": {
+          "type": "boolean"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ],
+          "description": "Level applies to KindAutonomy only."
+        },
+        "state": {
+          "type": "string"
+        },
+        "supersedes": {
+          "type": "string"
+        },
+        "superseded_by": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "scope",
+        "body",
+        "state",
+        "updated_at"
+      ],
+      "description": "Constraint is the harness unit: contract, invariant, rule, budget or an autonomy declaration for a scope."
+    },
+    "ScopeKey": {
+      "properties": {
+        "org": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ScopeKey is a coordinate in the scope lattice (ADR 0006): org × product × team × (repo, path glob) × person."
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/Settled.v1.json",
+  "$ref": "#/$defs/Settled",
+  "$defs": {
+    "Settled": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "derived": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "at"
+      ],
+      "description": "Settled closes the change."
+    }
+  }
+}

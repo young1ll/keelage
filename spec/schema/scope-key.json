@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/scope-key.json",
+  "$ref": "#/$defs/ScopeKey",
+  "$defs": {
+    "ScopeKey": {
+      "properties": {
+        "org": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ScopeKey is a coordinate in the scope lattice (ADR 0006): org × product × team × (repo, path glob) × person."
+    }
+  }
+}

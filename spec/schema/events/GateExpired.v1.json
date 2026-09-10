@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/GateExpired.v1.json",
+  "$ref": "#/$defs/GateExpired",
+  "$defs": {
+    "GateExpired": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "at"
+      ],
+      "description": "GateExpired closes an unanswered gate."
+    }
+  }
+}

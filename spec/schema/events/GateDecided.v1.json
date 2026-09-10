@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/GateDecided.v1.json",
+  "$ref": "#/$defs/GateDecided",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "GateDecided": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "actor": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "scope": {
+          "$ref": "#/$defs/ScopeKey"
+        },
+        "anchors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "action": {
+          "type": "string"
+        },
+        "proposal_ref": {
+          "type": "string"
+        },
+        "requested_level": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ]
+        },
+        "decision": {
+          "type": "string"
+        },
+        "policy_ref": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "actor",
+        "scope",
+        "proposal_ref",
+        "requested_level",
+        "decision",
+        "policy_ref",
+        "at"
+      ],
+      "description": "GateDecided is an immediate allow/deny."
+    },
+    "ScopeKey": {
+      "properties": {
+        "org": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ScopeKey is a coordinate in the scope lattice (ADR 0006): org × product × team × (repo, path glob) × person."
+    }
+  }
+}

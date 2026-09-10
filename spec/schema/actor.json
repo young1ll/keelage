@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/actor.json",
+  "$ref": "#/$defs/ActorRef",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    }
+  }
+}
