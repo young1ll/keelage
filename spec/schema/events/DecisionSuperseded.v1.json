@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/DecisionSuperseded.v1.json",
+  "$ref": "#/$defs/DecisionSuperseded",
+  "$defs": {
+    "DecisionSuperseded": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "by": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "by",
+        "at"
+      ],
+      "description": "DecisionSuperseded retires in favour of another."
+    }
+  }
+}

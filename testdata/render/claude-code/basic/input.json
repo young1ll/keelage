@@ -1,0 +1,18 @@
+{
+  "Repo": "keelage-sim",
+  "Tool": "claude-code",
+  "Constraints": [
+    {"ID": "c-billing", "Kind": "rule", "State": "verified", "Scope": {"repo": "keelage-sim", "path": "src/*"}, "Body": "no retries in billing", "Explanation": "retries double-charged customers in 2025", "Anchors": ["code://src/calc.ts#fee"]},
+    {"ID": "c-product", "Kind": "contract", "State": "verified", "Scope": {"product": "pay"}, "Body": "amounts are integers in minor units"},
+    {"ID": "c-vault", "Kind": "autonomy", "State": "verified", "Scope": {"repo": "keelage-sim", "path": "src/vault/*"}, "Body": "vault code is edited by humans", "Level": "L0", "DenyEdit": true},
+    {"ID": "c-review", "Kind": "rule", "State": "review", "Scope": {"team": "core"}, "Body": "log every refund"}
+  ],
+  "Decisions": [
+    {"ID": "d-0002", "Title": "0002. Ledger is the source of truth", "State": "verified", "Path": "docs/adr/0002-ledger-is-source-of-truth.md"},
+    {"ID": "d-0001", "Title": "0001. Unit is change", "State": "generated", "Path": "docs/adr/0001-unit-is-change.md"}
+  ],
+  "Anchors": [
+    {"Key": "code://src/calc.ts#Ledger.add", "State": "stale"},
+    {"Key": "code://src/old.ts#gone", "State": "unrealized", "MovedTo": "code://src/new.ts#gone"}
+  ]
+}

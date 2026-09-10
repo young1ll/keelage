@@ -23,6 +23,8 @@ func RegisterAll(p *Pipeline) {
 	Register(p, func(string) harness.Constraint { return harness.Constraint{} },
 		harness.DraftConstraint{}.Kind(), harness.VerifyConstraint{}.Kind(), harness.PromoteConstraint{}.Kind(),
 		harness.DemoteConstraint{}.Kind(), harness.SupersedeConstraint{}.Kind(), harness.RetireConstraint{}.Kind(), harness.RebindConstraint{}.Kind())
+	Register(p, func(string) harness.Decision { return harness.Decision{} },
+		harness.DraftDecision{}.Kind(), harness.VerifyDecision{}.Kind(), harness.ReviseDecision{}.Kind(), harness.SupersedeDecision{}.Kind(), harness.RetireDecision{}.Kind())
 	Register(p, func(stream string) harness.Scope {
 		k, _ := core.ParseScopeKey(strings.TrimPrefix(stream, "scope/"))
 		return harness.NewScope(k)

@@ -16,12 +16,13 @@
 
 ```sh
 make build && export PATH=$PWD/bin:$PATH
+keelage setup                                      # 전역 1회: 훅 등록(백업)·MCP 등록·~/.claude/CLAUDE.md 흡수. 항목별 승인
 keelage daemon &                                   # ~/.keelage/keelage.sock, ledger.db
 keelage constraint add --scope path='src/**' --anchor 'code://src/calc.ts#fee' --verify "no retries in billing"
 keelage constraint add --kind autonomy --level L0 --deny-edit --scope path='src/vault/*' --verify "vault code is edited by humans"
-keelage adapter claude-code print hooks             # → ~/.claude/settings.json 의 "hooks"에 병합
-keelage adapter claude-code print mcp               # → claude mcp add … keelage -- keelage mcp
-keelage adapter claude-code print skill             # → .claude/skills/keelage/SKILL.md (훅 없는 경로)
+keelage init --verify                              # 이 리포 활성화: CLAUDE.md·AGENTS.md·docs/adr 흡수, 컨텍스트 렌더(포인터 한 줄), .keelage/ 사이드카
+keelage status                                     # 데몬·훅·MCP·사이드카·diverged
+keelage uninstall                                  # 전부 되돌림 — 사용자 파일은 바이트 동일, 원장은 남김(--purge로 삭제)
 ```
 
 이후 Claude Code가 `src/calc.ts`를 편집하기 직전에 제약·닻 상태가 컨텍스트로 주입되고, `src/vault/*` 편집은 거부된다.

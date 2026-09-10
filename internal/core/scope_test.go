@@ -45,6 +45,10 @@ func TestScopeKey_Contains(t *testing.T) {
 		{"glob no match", ScopeKey{Repo: "r", PathGlob: "src/*.ts"}, ScopeKey{Repo: "r", PathGlob: "lib/a.ts"}, false},
 		{"glob needs target path", ScopeKey{Repo: "r", PathGlob: "src/*"}, ScopeKey{Repo: "r"}, false},
 		{"person", ScopeKey{Person: "me"}, ScopeKey{Person: "me", Repo: "r"}, true},
+		{"double star subtree", ScopeKey{Repo: "r", PathGlob: "src/**"}, ScopeKey{Repo: "r", PathGlob: "src/a/b/c.ts"}, true},
+		{"double star dir itself", ScopeKey{Repo: "r", PathGlob: "src/**"}, ScopeKey{Repo: "r", PathGlob: "src"}, true},
+		{"double star outside", ScopeKey{Repo: "r", PathGlob: "src/**"}, ScopeKey{Repo: "r", PathGlob: "srcx/a.ts"}, false},
+		{"single star stops at slash", ScopeKey{Repo: "r", PathGlob: "src/*"}, ScopeKey{Repo: "r", PathGlob: "src/a/b.ts"}, false},
 	}
 	for _, c := range cases {
 		if got := c.k.Contains(c.tgt); got != c.want {

@@ -306,7 +306,7 @@ func (h *Hooks) factsFor(repo, rel string, actor core.ActorKind) supply.Facts {
 	for _, c := range h.constraints.BoundTo(fileAnchor) {
 		addC(c)
 	}
-	for _, c := range h.constraints.InForce(core.ScopeKey{Repo: repo, PathGlob: rel}) {
+	for _, c := range h.constraints.InForce(core.ScopeKey{Repo: repo, PathGlob: rel, Person: string(h.owner)}) {
 		addC(c)
 	}
 	return f
