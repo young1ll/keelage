@@ -19,6 +19,7 @@ import (
 	"github.com/young1ll/keelage/internal/core"
 	"github.com/young1ll/keelage/internal/core/accountability"
 	"github.com/young1ll/keelage/internal/core/harness"
+	"github.com/young1ll/keelage/internal/core/realization"
 )
 
 const baseID = "https://github.com/young1ll/keelage/spec/schema/"
@@ -78,6 +79,8 @@ func run(out string) error {
 		{"judgment", accountability.Judgment{}},
 		{"outcome", accountability.Outcome{}},
 		{"gate", accountability.Gate{}},
+		{"anchor-record", realization.Anchor{}},
+		{"symbol", realization.Symbol{}},
 	}
 	if err := os.RemoveAll(out); err != nil {
 		return err

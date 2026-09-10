@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/AnchorMoved.v1.json",
+  "$ref": "#/$defs/AnchorMoved",
+  "$defs": {
+    "AnchorMoved": {
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "hash": {
+          "$ref": "#/$defs/Hash3"
+        },
+        "ref": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "to",
+        "hash",
+        "at"
+      ],
+      "description": "AnchorMoved: same signature, new location."
+    },
+    "Hash3": {
+      "properties": {
+        "signature": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "signature",
+        "body",
+        "file"
+      ],
+      "description": "Hash3 is the three-layer anchor hash (spec §1 \"낡음 판정\"): signature, body, file."
+    }
+  }
+}

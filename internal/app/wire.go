@@ -6,6 +6,7 @@ import (
 	"github.com/young1ll/keelage/internal/core"
 	"github.com/young1ll/keelage/internal/core/accountability"
 	"github.com/young1ll/keelage/internal/core/harness"
+	"github.com/young1ll/keelage/internal/core/realization"
 )
 
 // NewCodec returns a codec with every bounded context's events registered.
@@ -13,10 +14,11 @@ func NewCodec() *core.Codec {
 	c := core.NewCodec()
 	harness.RegisterEvents(c)
 	accountability.RegisterEvents(c)
+	realization.RegisterEvents(c)
 	return c
 }
 
-// RegisterAll wires the four v0 aggregates.
+// RegisterAll wires the v0 aggregates.
 func RegisterAll(p *Pipeline) {
 	Register(p, func(string) harness.Constraint { return harness.Constraint{} },
 		harness.DraftConstraint{}.Kind(), harness.VerifyConstraint{}.Kind(), harness.PromoteConstraint{}.Kind(),
@@ -30,4 +32,6 @@ func RegisterAll(p *Pipeline) {
 		accountability.Deploy{}.Kind(), accountability.RecordOutcome{}.Kind(), accountability.Settle{}.Kind())
 	Register(p, func(string) accountability.Gate { return accountability.Gate{} },
 		accountability.RequestGate{}.Kind(), accountability.ResolveGate{}.Kind(), accountability.ExpireGate{}.Kind())
+	Register(p, func(string) realization.Anchor { return realization.Anchor{} },
+		realization.RecordAnchor{}.Kind(), realization.VerifyAnchor{}.Kind(), realization.MoveAnchor{}.Kind())
 }

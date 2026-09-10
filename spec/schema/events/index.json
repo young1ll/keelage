@@ -1,5 +1,9 @@
 {
   "latest": {
+    "AnchorMoved": 1,
+    "AnchorRecorded": 1,
+    "AnchorStaled": 1,
+    "AnchorVerified": 1,
     "AutonomyChanged": 1,
     "CapChanged": 1,
     "ChangeOpened": 1,

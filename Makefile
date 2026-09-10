@@ -3,7 +3,7 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 BIN     := bin
 
-.PHONY: all build test lint schema check-generated tidy clean
+.PHONY: all build test lint schema check-generated tidy clean dogfood-record dogfood-verify wasm
 
 all: lint test build
 
@@ -31,3 +31,14 @@ tidy:
 
 clean:
 	rm -rf $(BIN)
+
+# dogfood: 이 리포의 닻을 개인 원장에 기록하고 검증한다 (docs/metrics/stale-false-positives.md).
+DOGFOOD_ANCHORS := code://internal/core/envelope.go code://internal/core/scope.go code://internal/app/pipeline.go code://internal/adapter/sqlite/ledger.go code://internal/adapter/treesitter/queries/typescript.scm
+dogfood-record: build
+	$(BIN)/keelage anchor add $(DOGFOOD_ANCHORS)
+dogfood-verify: build
+	$(BIN)/keelage verify --changed --fail-on none
+
+# tree-sitter 런타임+문법을 wasm 하나로 (internal/adapter/treesitter/VERSION 참조).
+wasm:
+	./scripts/build-treesitter-wasm.sh
