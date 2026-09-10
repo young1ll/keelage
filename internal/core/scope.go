@@ -84,7 +84,7 @@ func (k ScopeKey) Validate() error {
 		if k.Repo == "" {
 			return errors.New("scope: path glob requires repo")
 		}
-		if _, err := path.Match(k.PathGlob, ""); err != nil {
+		if _, err := path.Match(strings.TrimSuffix(k.PathGlob, "/**"), ""); err != nil {
 			return fmt.Errorf("scope: bad path glob %q: %w", k.PathGlob, err)
 		}
 	}
@@ -125,12 +125,24 @@ func (k ScopeKey) Contains(target ScopeKey) bool {
 		if target.PathGlob == "" || k.PathGlob == target.PathGlob {
 			return target.PathGlob != ""
 		}
-		ok, err := path.Match(k.PathGlob, target.PathGlob)
-		if err != nil || !ok {
+		if !globMatch(k.PathGlob, target.PathGlob) {
 			return false
 		}
 	}
 	return true
+}
+
+// globMatch is path.Match plus one extension: a pattern ending in "/**"
+// matches everything under that directory (path.Match's * stops at '/').
+func globMatch(pattern, p string) bool {
+	if dir, ok := strings.CutSuffix(pattern, "/**"); ok {
+		return p == dir || strings.HasPrefix(p, dir+"/")
+	}
+	if pattern == "**" {
+		return true
+	}
+	ok, err := path.Match(pattern, p)
+	return err == nil && ok
 }
 
 // Resolve returns the keys that apply to target, ordered for kind:

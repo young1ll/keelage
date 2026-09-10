@@ -36,6 +36,7 @@ type coreRuntime struct {
 	changes     *app.ChangeIndex
 	anchors     *app.AnchorIndex
 	sessions    *app.SessionIndex
+	decisions   *app.DecisionIndex
 	pipeline    *app.Pipeline
 	hooks       *app.Hooks
 	ids         port.IDGen
@@ -63,7 +64,7 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 	c := &coreRuntime{
 		home: home, ledger: ledger, codec: app.NewCodec(),
 		scopes: app.NewScopeIndex(), constraints: app.NewConstraintIndex(), changes: app.NewChangeIndex(), anchors: app.NewAnchorIndex(),
-		sessions: app.NewSessionIndex(), ids: ulid.New(),
+		sessions: app.NewSessionIndex(), decisions: app.NewDecisionIndex(), ids: ulid.New(),
 	}
 	if c.seq, err = app.Rebuild(ctx, ledger, c.codec, c.projectors()...); err != nil {
 		_ = ledger.Close()
@@ -79,7 +80,7 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 }
 
 func (c *coreRuntime) projectors() []port.Projector {
-	return []port.Projector{c.scopes, c.constraints, c.changes, c.anchors, c.sessions}
+	return []port.Projector{c.scopes, c.constraints, c.changes, c.anchors, c.sessions, c.decisions}
 }
 
 // catchUp projects records written by other processes since the last look.

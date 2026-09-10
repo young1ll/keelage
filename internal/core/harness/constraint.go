@@ -484,4 +484,9 @@ func RegisterEvents(c *core.Codec) {
 	c.Register(AutonomyChanged{})
 	c.Register(CapChanged{})
 	c.Register(ExceptionRaised{})
+	c.Register(DecisionDrafted{})
+	c.Register(DecisionVerified{})
+	c.Register(DecisionRevised{})
+	c.Register(DecisionSuperseded{})
+	c.Register(DecisionRetired{})
 }
