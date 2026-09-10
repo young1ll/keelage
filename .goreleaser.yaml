@@ -1,0 +1,99 @@
+# keelage release pipeline (implementation-plan-v0 §6.1/§6.4): tag → binaries
+# for macOS/Linux, checksums, SBOM, keyless cosign signatures, server image.
+# Run locally: goreleaser release --snapshot --clean (no publish).
+version: 2
+project_name: keelage
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: keelage
+    main: ./cmd/keelage
+    binary: keelage
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+  - id: keelage-server
+    main: ./cmd/keelage-server
+    binary: keelage-server
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - id: keelage
+    ids: [keelage]
+    name_template: "keelage_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files: [README.md]
+  - id: keelage-server
+    ids: [keelage-server]
+    name_template: "keelage-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files: [README.md, deploy/docker/compose.yaml]
+
+checksum:
+  name_template: checksums.txt
+
+sboms:
+  - artifacts: archive
+
+# keyless signing (sigstore): the certificate identity is this workflow;
+# install.sh and `cosign verify-blob` check it (docs/adr/0016).
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    signature: "${artifact}.sigstore.json"
+    args: ["sign-blob", "--yes", "--bundle", "${signature}", "${artifact}"]
+    output: false
+
+# multi-platform server image; the build context holds the binaries under
+# $TARGETPLATFORM/ (see deploy/docker/Dockerfile)
+dockers_v2:
+  - id: keelage-server
+    ids: [keelage-server]
+    dockerfile: deploy/docker/Dockerfile
+    images:
+      - ghcr.io/young1ll/keelage-server
+    tags:
+      - "v{{ .Version }}"
+      - latest
+    platforms: [linux/amd64, linux/arm64]
+    extra_files: [deploy/docker/compose.yaml]
+    labels:
+      org.opencontainers.image.source: "{{ .GitURL }}"
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+    sbom: true
+
+docker_signs:
+  - cmd: cosign
+    artifacts: all
+    args: ["sign", "--yes", "${artifact}@${digest}"]
+    output: false
+
+changelog:
+  sort: asc
+  filters:
+    exclude: ["^test", "^chore", "Merge pull request"]
+
+release:
+  github:
+    owner: young1ll
+    name: keelage
+  footer: |
+    ### Verify
+    ```sh
+    cosign verify-blob checksums.txt --bundle checksums.txt.sigstore.json \
+      --certificate-identity "https://github.com/young1ll/keelage/.github/workflows/release.yml@refs/tags/{{ .Tag }}" \
+      --certificate-oidc-issuer https://token.actions.githubusercontent.com
+    sha256sum -c checksums.txt --ignore-missing
+    ```

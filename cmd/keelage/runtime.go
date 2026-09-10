@@ -43,8 +43,10 @@ type coreRuntime struct {
 	pipeline    *app.Pipeline
 	hooks       *app.Hooks
 	ids         port.IDGen
-	seq         int64
-	cacheSeq    int64
+	// cursors track what the projections have seen per ledger, including
+	// the pipeline's own synchronous writes, so catch-up never re-applies.
+	cursor      *app.Cursor
+	cacheCursor *app.Cursor
 	mu          sync.Mutex
 }
 
@@ -80,13 +82,14 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 		home: home, ledger: ledger, cache: cache, codec: app.NewCodec(),
 		scopes: app.NewScopeIndex(), constraints: app.NewConstraintIndex(), changes: app.NewChangeIndex(), anchors: app.NewAnchorIndex(),
 		sessions: app.NewSessionIndex(), decisions: app.NewDecisionIndex(), ids: ulid.New(),
+		cursor: &app.Cursor{}, cacheCursor: &app.Cursor{},
 	}
-	if c.seq, err = app.Rebuild(ctx, ledger, c.codec, c.projectors()...); err != nil {
+	if _, err = app.Rebuild(ctx, ledger, c.codec, c.projectors()...); err != nil {
 		c.close()
 		return nil, err
 	}
 	// team layer on top: streams this daemon never wrote locally (ADR 0015)
-	if c.cacheSeq, err = app.Rebuild(ctx, cache, c.codec, c.projectors()...); err != nil {
+	if _, err = app.Rebuild(ctx, cache, c.codec, c.cacheProjectors()...); err != nil {
 		c.close()
 		return nil, err
 	}
@@ -99,9 +102,15 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 	return c, nil
 }
 
-func (c *coreRuntime) projectors() []port.Projector {
+func (c *coreRuntime) indexes() []port.Projector {
 	return []port.Projector{c.scopes, c.constraints, c.changes, c.anchors, c.sessions, c.decisions}
 }
+
+// projectors is the personal ledger's list (pipeline + catch-up).
+func (c *coreRuntime) projectors() []port.Projector { return append(c.indexes(), c.cursor) }
+
+// cacheProjectors is the team cache's list (pull + catch-up).
+func (c *coreRuntime) cacheProjectors() []port.Projector { return append(c.indexes(), c.cacheCursor) }
 
 // catchUp projects records written by other processes since the last look.
 func (c *coreRuntime) catchUp(ctx context.Context) error {
@@ -111,23 +120,19 @@ func (c *coreRuntime) catchUp(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if head.Seq > c.seq {
-		seq, err := app.Replay(ctx, c.ledger, c.codec, c.seq, c.projectors()...)
-		if err != nil {
+	if head.Seq > c.cursor.Seq() {
+		if _, err := app.Replay(ctx, c.ledger, c.codec, c.cursor.Seq(), c.projectors()...); err != nil {
 			return err
 		}
-		c.seq = seq
 	}
 	cacheHead, err := c.cache.Head(ctx)
 	if err != nil {
 		return err
 	}
-	if cacheHead.Seq > c.cacheSeq {
-		seq, err := app.Replay(ctx, c.cache, c.codec, c.cacheSeq, c.projectors()...)
-		if err != nil {
+	if cacheHead.Seq > c.cacheCursor.Seq() {
+		if _, err := app.Replay(ctx, c.cache, c.codec, c.cacheCursor.Seq(), c.cacheProjectors()...); err != nil {
 			return err
 		}
-		c.cacheSeq = seq
 	}
 	return nil
 }

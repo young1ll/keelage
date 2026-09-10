@@ -90,7 +90,7 @@ func (c *coreRuntime) daemonID() string { return c.key.Fingerprint() }
 func (c *coreRuntime) syncer(client *teamclient.Client) *app.Syncer {
 	return &app.Syncer{
 		Local: c.ledger, Cache: c.cache, Codec: c.codec, Client: client, DaemonID: c.daemonID(),
-		Constraints: c.constraints, Sessions: c.sessions, Projectors: c.projectors(), Clock: clock{},
+		Constraints: c.constraints, Sessions: c.sessions, Projectors: c.cacheProjectors(), Clock: clock{},
 	}
 }
 

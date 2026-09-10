@@ -1,0 +1,39 @@
+# Team self-host (implementation-plan-v0 §6.2): keelage-server + Postgres.
+#   docker compose up -d
+#   docker compose exec server /keelage-server org create acme
+#   docker compose exec server /keelage-server member add acme <github-login>
+#   docker compose exec server /keelage-server key          # server public key for verify-proof
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: keelage
+      POSTGRES_PASSWORD: ${KEELAGE_DB_PASSWORD:-keelage}
+      POSTGRES_DB: keelage
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keelage"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  server:
+    image: ghcr.io/young1ll/keelage-server:${KEELAGE_VERSION:-latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      KEELAGE_DB: postgres://keelage:${KEELAGE_DB_PASSWORD:-keelage}@db:5432/keelage?sslmode=disable
+      # device login (optional): a GitHub OAuth app with device flow enabled
+      KEELAGE_GITHUB_CLIENT_ID: ${KEELAGE_GITHUB_CLIENT_ID:-}
+      # GitHub App (optional): PR comments·checks, reviews → judgments
+      KEELAGE_GITHUB_APP_ID: ${KEELAGE_GITHUB_APP_ID:-}
+      KEELAGE_GITHUB_APP_KEY: ${KEELAGE_GITHUB_APP_KEY:-}
+      KEELAGE_GITHUB_WEBHOOK_SECRET: ${KEELAGE_GITHUB_WEBHOOK_SECRET:-}
+    volumes:
+      - serverdata:/data
+    ports:
+      - "${KEELAGE_PORT:-8080}:8080"
+volumes:
+  pgdata:
+  serverdata:
