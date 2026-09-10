@@ -111,3 +111,21 @@ func LoadOrCreate(path string) (*Key, error) {
 	}
 	return k, Save(path, k)
 }
+
+// Verifier implements port.SignatureVerifier over EncodePublic keys.
+type Verifier struct{}
+
+// Verify implements port.SignatureVerifier.
+func (Verifier) Verify(publicKey string, hash, sig []byte) bool {
+	pub, err := DecodePublic(publicKey)
+	if err != nil {
+		return false
+	}
+	return Verify(pub, hash, sig)
+}
+
+// ValidKey implements port.SignatureVerifier.
+func (Verifier) ValidKey(publicKey string) bool {
+	_, err := DecodePublic(publicKey)
+	return err == nil
+}

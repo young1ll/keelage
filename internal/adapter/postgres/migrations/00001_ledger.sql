@@ -34,10 +34,11 @@ CREATE TABLE event (
   idem      TEXT,
   UNIQUE (org_id, seq),
   UNIQUE (org_id, stream, ver),
-  UNIQUE (org_id, stream, idem),
-  UNIQUE (org_id, origin)
+  UNIQUE (org_id, stream, idem)
 );
 CREATE INDEX event_org_stream ON event (org_id, stream, ver);
+-- one server record per (daemon, local seq): a re-pushed record is a duplicate, never a second copy
+CREATE UNIQUE INDEX event_org_origin ON event (org_id, (origin->>'daemon_id'), ((origin->>'local_seq')::bigint)) WHERE origin IS NOT NULL;
 
 CREATE TABLE merkle_node (
   org_id TEXT NOT NULL REFERENCES org(id),

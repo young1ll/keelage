@@ -126,15 +126,15 @@ func TestLedger_OriginAndTenancy(t *testing.T) {
 	if _, err := a.Append(ctx, "s", 1, []core.Envelope{e}); !errors.Is(err, port.ErrDuplicateOrigin) {
 		t.Fatalf("duplicate origin: %v", err)
 	}
-	if ok, _ := a.HasOrigin(ctx, *e.Origin); !ok {
-		t.Fatal("has origin")
+	if seq, err := a.FindOrigin(ctx, "d1", 7); err != nil || seq != 1 {
+		t.Fatalf("find origin: %d %v", seq, err)
 	}
 	// the same origin in another org is a different tenant
 	if _, err := b.Append(ctx, "s", 0, []core.Envelope{e}); err != nil {
 		t.Fatalf("other org: %v", err)
 	}
-	if ok, _ := b.HasOrigin(ctx, core.Origin{DaemonID: "d1", LocalSeq: 8}); ok {
-		t.Fatal("unknown origin")
+	if _, err := b.FindOrigin(ctx, "d1", 8); !errors.Is(err, port.ErrNotFound) {
+		t.Fatalf("unknown origin: %v", err)
 	}
 	ha, _ := a.Head(ctx)
 	hb, _ := b.Head(ctx)

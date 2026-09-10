@@ -142,6 +142,10 @@
         },
         "local_seq": {
           "type": "integer"
+        },
+        "prev_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         }
       },
       "additionalProperties": false,

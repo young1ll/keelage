@@ -44,12 +44,18 @@ func (s *Store) IssueToken(ctx context.Context, org, user, kind, owner, label st
 	if kind != "human" && owner == "" {
 		return "", errors.New("postgres: agent and ci tokens need an owner")
 	}
-	ok, err := s.IsMember(ctx, org, user)
+	// the responsible human must be a member: the user for human tokens,
+	// the owner for agent and ci tokens
+	member := user
+	if kind != "human" {
+		member = owner
+	}
+	ok, err := s.IsMember(ctx, org, member)
 	if err != nil {
 		return "", err
 	}
 	if !ok {
-		return "", errors.New("postgres: " + user + " is not a member of " + org)
+		return "", errors.New("postgres: " + member + " is not a member of " + org)
 	}
 	raw := make([]byte, 32)
 	if _, err := rand.Read(raw); err != nil {
@@ -135,4 +141,6 @@ func (s *Store) DaemonKey(ctx context.Context, org, id string) (string, string, 
 var (
 	_ port.Authenticator  = (*Store)(nil)
 	_ port.DaemonRegistry = (*Store)(nil)
+	_ port.TokenIssuer    = (*Store)(nil)
+	_ port.Membership     = (*Store)(nil)
 )

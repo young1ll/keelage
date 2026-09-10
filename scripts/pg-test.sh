@@ -2,6 +2,7 @@
 # Throwaway PostgreSQL 16 cluster for the server ledger tests.
 #   scripts/pg-test.sh start   → prints the DSN; export KEELAGE_TEST_PG=<dsn>
 #   scripts/pg-test.sh stop
+#   scripts/pg-test.sh reset  → drop and recreate keelage_test (after editing a migration)
 # Runs as the `postgres` user when invoked by root (postgres refuses root).
 set -euo pipefail
 DIR="${KEELAGE_PG_DIR:-/tmp/keelage-pg}"
@@ -18,5 +19,10 @@ case "${1:-}" in
     echo "postgres://keelage@/keelage_test?host=$DIR&port=$PORT&sslmode=disable"
     ;;
   stop) run "$BIN/pg_ctl -D $DIR/data -m fast stop >/dev/null" ;;
-  *) echo "usage: $0 start|stop" >&2; exit 2 ;;
+  reset)
+    # migrations are edited in place before they ship: start the test database over
+    psql -h "$DIR" -p "$PORT" -U keelage -d postgres -qc 'DROP DATABASE IF EXISTS keelage_test'
+    psql -h "$DIR" -p "$PORT" -U keelage -d postgres -qc 'CREATE DATABASE keelage_test'
+    ;;
+  *) echo "usage: $0 start|stop|reset" >&2; exit 2 ;;
 esac

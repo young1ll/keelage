@@ -3,7 +3,7 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 BIN     := bin
 
-.PHONY: all build test lint schema check-generated tidy clean dogfood-record dogfood-verify wasm pg-start pg-stop test-pg
+.PHONY: all build test lint schema check-generated tidy clean dogfood-record dogfood-verify wasm pg-start pg-stop pg-reset test-pg
 
 all: lint test build
 
@@ -48,5 +48,7 @@ pg-start:
 	./scripts/pg-test.sh start
 pg-stop:
 	./scripts/pg-test.sh stop
+pg-reset:
+	./scripts/pg-test.sh reset
 test-pg:
-	KEELAGE_TEST_PG="$$(./scripts/pg-test.sh start)" go test -race -count=1 ./internal/adapter/postgres/... ./cmd/keelage-server/...; ./scripts/pg-test.sh stop
+	KEELAGE_TEST_PG="$$(./scripts/pg-test.sh start)" go test -race -count=1 ./internal/adapter/postgres/... ./cmd/...; ./scripts/pg-test.sh stop

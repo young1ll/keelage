@@ -61,7 +61,7 @@ func rootCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: false,
 	}
-	root.AddCommand(daemonCmd(), versionCmd(), anchorCmd(), verifyCmd(), constraintCmd(), hookCmd(), mcpCmd(), adapterCmd(), changeCmd(), inboxCmd(), historyCmd(), sessionsCmd(), initCmd(), uninitCmd(), statusCmd(), setupCmd(), uninstallCmd(), verifyProofCmd())
+	root.AddCommand(daemonCmd(), versionCmd(), anchorCmd(), verifyCmd(), constraintCmd(), hookCmd(), mcpCmd(), adapterCmd(), changeCmd(), inboxCmd(), historyCmd(), sessionsCmd(), initCmd(), uninitCmd(), statusCmd(), setupCmd(), uninstallCmd(), verifyProofCmd(), serverCmd(), syncCmd(), gateCmd())
 	return root
 }
 

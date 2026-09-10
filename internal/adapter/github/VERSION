@@ -1,0 +1,6 @@
+github-oauth-device 2026-09-10
+source: github/docs content/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps.md (device flow)
+verified: POST {oauth}/login/device/code {client_id, scope} → device_code,user_code,verification_uri,expires_in,interval
+          POST {oauth}/login/oauth/access_token {client_id, device_code, grant_type=urn:ietf:params:oauth:grant-type:device_code}
+          errors: authorization_pending | slow_down (+5s, new interval) | expired_token | access_denied | incorrect_device_code
+          Accept: application/json ; identity: GET {api}/user with Bearer token → login

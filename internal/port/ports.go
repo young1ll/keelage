@@ -87,6 +87,9 @@ type Commits interface {
 // ErrUnauthenticated: no valid credential.
 var ErrUnauthenticated = errors.New("unauthenticated")
 
+// ErrForbidden: authenticated, but not allowed to do this.
+var ErrForbidden = errors.New("forbidden")
+
 // ErrDaemonKeyMismatch: a daemon id is already bound to another key.
 var ErrDaemonKeyMismatch = errors.New("daemon id is registered with a different key")
 
@@ -117,8 +120,9 @@ type DaemonRegistry interface {
 	DaemonKey(ctx context.Context, org, id string) (publicKey, user string, err error)
 }
 
-// OriginLedger is a ledger that can check synced origins.
+// OriginLedger is a ledger that can look up synced origins: the server seq
+// of the record from (daemon, local seq), or ErrNotFound.
 type OriginLedger interface {
 	Ledger
-	HasOrigin(ctx context.Context, o core.Origin) (bool, error)
+	FindOrigin(ctx context.Context, daemonID string, localSeq int64) (int64, error)
 }

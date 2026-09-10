@@ -42,6 +42,8 @@ var migrations = []string{
 		UNIQUE(stream, idem)
 	);
 	CREATE INDEX event_stream ON event(stream, ver);`,
+	// v2: provenance of synced copies (the team cache keeps the server's origin)
+	`ALTER TABLE event ADD COLUMN origin TEXT`,
 }
 
 // Ledger implements port.Ledger on SQLite.
@@ -107,7 +109,7 @@ func (l *Ledger) migrate(ctx context.Context) error {
 	return nil
 }
 
-const columns = `seq, stream, ver, kind, v, ts, actor, meta, body, meta_hash, body_hash, prev_hash, hash, sig, idem`
+const columns = `seq, stream, ver, kind, v, ts, actor, meta, body, meta_hash, body_hash, prev_hash, hash, sig, idem, origin`
 
 // Append implements port.Ledger.
 func (l *Ledger) Append(ctx context.Context, stream string, expected int64, evs []core.Envelope) (port.Range, error) {
@@ -162,7 +164,7 @@ func (l *Ledger) Append(ctx context.Context, stream string, expected int64, evs 
 		if err := e.Seal(prev); err != nil {
 			return port.Range{}, err
 		}
-		if l.signer != nil {
+		if l.signer != nil && len(e.Sig) == 0 {
 			if e.Sig, err = l.signer.Sign(e.Hash); err != nil {
 				return port.Range{}, err
 			}
@@ -175,14 +177,18 @@ func (l *Ledger) Append(ctx context.Context, stream string, expected int64, evs 
 		if err != nil {
 			return port.Range{}, err
 		}
-		var idem any
+		var idem, origin any
 		if e.Idem != "" {
 			idem = e.Idem
 		}
-		res, err := tx.ExecContext(ctx, `INSERT INTO event (seq, stream, ver, kind, v, ts, actor, meta, body, meta_hash, body_hash, prev_hash, hash, sig, idem)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		if e.Origin != nil {
+			b, _ := json.Marshal(e.Origin)
+			origin = string(b)
+		}
+		res, err := tx.ExecContext(ctx, `INSERT INTO event (seq, stream, ver, kind, v, ts, actor, meta, body, meta_hash, body_hash, prev_hash, hash, sig, idem, origin)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			e.Seq, e.Stream, e.Ver, e.Kind, e.V, e.TS.UTC().Format(time.RFC3339Nano), string(actor), string(meta), []byte(e.Body),
-			[]byte(e.MetaHash), []byte(e.BodyHash), []byte(e.PrevHash), []byte(e.Hash), e.Sig, idem)
+			[]byte(e.MetaHash), []byte(e.BodyHash), []byte(e.PrevHash), []byte(e.Hash), e.Sig, idem, origin)
 		if err != nil {
 			return port.Range{}, fmt.Errorf("sqlite: insert: %w", err)
 		}
@@ -203,9 +209,9 @@ func scan(rows *sql.Rows) (core.Envelope, error) {
 		e                       core.Envelope
 		ts, actor, meta         string
 		body, mh, bh, ph, h, sg []byte
-		idem                    sql.NullString
+		idem, origin            sql.NullString
 	)
-	if err := rows.Scan(&e.Seq, &e.Stream, &e.Ver, &e.Kind, &e.V, &ts, &actor, &meta, &body, &mh, &bh, &ph, &h, &sg, &idem); err != nil {
+	if err := rows.Scan(&e.Seq, &e.Stream, &e.Ver, &e.Kind, &e.V, &ts, &actor, &meta, &body, &mh, &bh, &ph, &h, &sg, &idem, &origin); err != nil {
 		return e, err
 	}
 	t, err := time.Parse(time.RFC3339Nano, ts)
@@ -223,6 +229,12 @@ func scan(rows *sql.Rows) (core.Envelope, error) {
 	e.MetaHash, e.BodyHash, e.PrevHash, e.Hash, e.Sig = mh, bh, ph, h, sg
 	if idem.Valid {
 		e.Idem = idem.String
+	}
+	if origin.Valid {
+		var o core.Origin
+		if err := json.Unmarshal([]byte(origin.String), &o); err == nil {
+			e.Origin = &o
+		}
 	}
 	return e, nil
 }

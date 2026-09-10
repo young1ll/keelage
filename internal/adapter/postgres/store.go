@@ -81,3 +81,21 @@ func (s *Store) tx(ctx context.Context, org string) (*sql.Tx, error) {
 	}
 	return tx, nil
 }
+
+// Orgs lists tenant ids.
+func (s *Store) Orgs(ctx context.Context) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id FROM org ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+	return out, rows.Err()
+}

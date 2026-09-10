@@ -84,8 +84,6 @@ func (l *Ledger) Append(ctx context.Context, stream string, expected int64, evs 
 	r := port.Range{Stream: stream, FromVer: cur + 1, ToVer: cur + int64(len(evs)), FromSeq: headSeq + 1}
 	for i, e := range evs {
 		e.Stream, e.Ver, e.Seq = stream, cur+int64(i)+1, headSeq+int64(i)+1
-		// timestamptz keeps microseconds: seal exactly what will be stored
-		e.TS = e.TS.UTC().Truncate(time.Microsecond)
 		if err := e.Seal(prev); err != nil {
 			return port.Range{}, err
 		}
@@ -114,7 +112,7 @@ func (l *Ledger) Append(ctx context.Context, stream string, expected int64, evs 
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 				switch pgErr.ConstraintName {
-				case "event_org_id_origin_key":
+				case "event_org_origin":
 					return port.Range{}, port.ErrDuplicateOrigin
 				case "event_org_id_stream_idem_key":
 					return port.Range{}, port.ErrDuplicateIdempotencyKey
@@ -239,19 +237,22 @@ func (l *Ledger) Lookup(ctx context.Context, stream, idem string) (core.Envelope
 	return evs[0], nil
 }
 
-// HasOrigin reports whether a synced record with this origin exists.
-func (l *Ledger) HasOrigin(ctx context.Context, o core.Origin) (bool, error) {
-	b, _ := json.Marshal(o)
-	var n int
+// FindOrigin implements port.OriginLedger.
+func (l *Ledger) FindOrigin(ctx context.Context, daemonID string, localSeq int64) (int64, error) {
 	tx, err := l.s.tx(ctx, l.org)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
 	defer func() { _ = tx.Rollback() }()
-	if err := tx.QueryRowContext(ctx, `SELECT count(1) FROM event WHERE org_id = $1 AND origin = $2::jsonb`, l.org, string(b)).Scan(&n); err != nil {
-		return false, err
+	var seq int64
+	err = tx.QueryRowContext(ctx, `SELECT seq FROM event WHERE org_id = $1 AND origin->>'daemon_id' = $2 AND (origin->>'local_seq')::bigint = $3`, l.org, daemonID, localSeq).Scan(&seq)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, port.ErrNotFound
 	}
-	return n > 0, nil
+	return seq, err
 }
 
-var _ port.Ledger = (*Ledger)(nil)
+var (
+	_ port.Ledger       = (*Ledger)(nil)
+	_ port.OriginLedger = (*Ledger)(nil)
+)
