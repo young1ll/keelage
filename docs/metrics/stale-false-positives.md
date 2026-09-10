@@ -16,7 +16,7 @@
 
 | 주 | ref | 판정(review/stale) | 오탐(review/stale) | 오탐률 | 비고 |
 |---|---|---|---|---|---|
-| 5 | (첫 측정) | | | | 이 문서 이후 첫 verify부터 |
+| 5 | b9f2f3f | 0 / 2 | 0 / 2 | stale 100% | 첫 측정(모의): `internal/core/scope.go` 끝에 빈 줄, `queries/typescript.scm`에 주석 한 줄 추가 → 둘 다 generic이라 `stale`. 둘 다 오탐(제약 유효). generic 폴백의 구조적 비용 = 기준선. TS 픽스처는 e2e(`cmd/keelage/verify_test.go`)에서 body→review, 시그니처→stale, 주석→file로 분리됨 |
 
 ## 오탐이 나오는 알려진 원인
 - generic 언어(Go): 파일 어느 곳의 변경도 시그니처 변경 → Go tree-sitter(13주+)까지는 구조적 오탐.
