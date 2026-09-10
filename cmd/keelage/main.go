@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/young1ll/keelage/internal/adapter/httpapi"
+	"github.com/young1ll/keelage/internal/adapter/sqlite"
 	"github.com/young1ll/keelage/internal/adapter/uds"
 )
 
@@ -54,14 +55,32 @@ func daemonCmd() *cobra.Command {
 		Use:   "daemon",
 		Short: "Run the per-user daemon (local API over a Unix socket)",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			sock, err := resolveSocket(socket)
+			home, err := resolveHome()
 			if err != nil {
 				return err
+			}
+			sock := socket
+			if sock == "" {
+				sock = filepath.Join(home, "keelage.sock")
 			}
 			ctx, stop := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()
 			log := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-			log.Info("daemon starting", "version", version, "socket", sock)
+
+			// The personal ledger: append-only, hash-chained, SQLite in WAL mode.
+			if err := os.MkdirAll(home, 0o700); err != nil {
+				return fmt.Errorf("create home: %w", err)
+			}
+			ledger, err := sqlite.Open(filepath.Join(home, "ledger.db"), nil)
+			if err != nil {
+				return err
+			}
+			defer func() { _ = ledger.Close() }()
+			head, err := ledger.Head(ctx)
+			if err != nil {
+				return err
+			}
+			log.Info("daemon starting", "version", version, "socket", sock, "ledger_seq", head.Seq)
 			err = uds.Serve(ctx, sock, httpapi.New("keelage", version))
 			if errors.Is(err, uds.ErrAlreadyRunning) {
 				return fmt.Errorf("%w: %s", err, sock)
@@ -74,16 +93,14 @@ func daemonCmd() *cobra.Command {
 	return c
 }
 
-func resolveSocket(flag string) (string, error) {
-	if flag != "" {
-		return flag, nil
-	}
+// resolveHome is ~/.keelage, or $KEELAGE_HOME.
+func resolveHome() (string, error) {
 	if env := os.Getenv("KEELAGE_HOME"); env != "" {
-		return filepath.Join(env, "keelage.sock"), nil
+		return env, nil
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("resolve home: %w", err)
 	}
-	return filepath.Join(home, ".keelage", "keelage.sock"), nil
+	return filepath.Join(home, ".keelage"), nil
 }
