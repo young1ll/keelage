@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/young1ll/keelage/internal/adapter/git"
+	"github.com/young1ll/keelage/internal/adapter/keys"
 	"github.com/young1ll/keelage/internal/adapter/sqlite"
 	"github.com/young1ll/keelage/internal/adapter/treesitter"
 	"github.com/young1ll/keelage/internal/adapter/ulid"
@@ -29,6 +30,7 @@ import (
 // the pipeline and the hook service.
 type coreRuntime struct {
 	home        string
+	key         *keys.Key
 	ledger      *sqlite.Ledger
 	codec       *core.Codec
 	scopes      *app.ScopeIndex
@@ -57,11 +59,16 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 	if err := os.MkdirAll(filepath.Join(home, "cache"), 0o700); err != nil {
 		return nil, fmt.Errorf("create home: %w", err)
 	}
-	ledger, err := sqlite.Open(filepath.Join(home, "ledger.db"), nil)
+	// every local record is signed with the daemon key (~/.keelage/keys, 0600)
+	key, err := keys.LoadOrCreate(filepath.Join(home, "keys", "daemon.ed25519"))
 	if err != nil {
 		return nil, err
 	}
-	c := &coreRuntime{
+	ledger, err := sqlite.Open(filepath.Join(home, "ledger.db"), key)
+	if err != nil {
+		return nil, err
+	}
+	c := &coreRuntime{key: key,
 		home: home, ledger: ledger, codec: app.NewCodec(),
 		scopes: app.NewScopeIndex(), constraints: app.NewConstraintIndex(), changes: app.NewChangeIndex(), anchors: app.NewAnchorIndex(),
 		sessions: app.NewSessionIndex(), decisions: app.NewDecisionIndex(), ids: ulid.New(),

@@ -19,6 +19,8 @@ var (
 	ErrEmptyAppend = errors.New("ledger: nothing to append")
 	// ErrNotFound: no record matches.
 	ErrNotFound = errors.New("ledger: not found")
+	// ErrDuplicateOrigin: a synced record with the same origin already exists.
+	ErrDuplicateOrigin = errors.New("ledger: duplicate origin")
 )
 
 // Range describes the records one Append wrote.

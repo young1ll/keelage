@@ -68,6 +68,15 @@ type Envelope struct {
 	// Idem is the command idempotency key, set on the first event of a
 	// command; the ledger enforces UNIQUE(stream, idem).
 	Idem string `json:"idem,omitempty"`
+	// Origin is where a synced record came from (daemon id + its local
+	// seq); the server ledger enforces UNIQUE(org, origin). Not hashed.
+	Origin *Origin `json:"origin,omitempty"`
+}
+
+// Origin identifies a record's source daemon and local position.
+type Origin struct {
+	DaemonID string `json:"daemon_id"`
+	LocalSeq int64  `json:"local_seq"`
 }
 
 type sealedMeta struct {
