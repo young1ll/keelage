@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/ChangeOpened.v1.json",
+  "$ref": "#/$defs/ChangeOpened",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "ChangeOpened": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/ScopeKey"
+        },
+        "intent_ref": {
+          "type": "string"
+        },
+        "no_intent": {
+          "type": "boolean"
+        },
+        "impact": {
+          "$ref": "#/$defs/Impact"
+        },
+        "proposal": {
+          "$ref": "#/$defs/Proposal"
+        },
+        "autonomy_applied": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ]
+        },
+        "by": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "mode",
+        "scope",
+        "impact",
+        "autonomy_applied",
+        "by",
+        "at"
+      ],
+      "description": "ChangeOpened is the creation event."
+    },
+    "Impact": {
+      "properties": {
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/ImpactRef"
+          },
+          "type": "array"
+        },
+        "decisions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "anchors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Impact is what the change touches."
+    },
+    "ImpactRef": {
+      "properties": {
+        "constraint": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "constraint",
+        "relation"
+      ],
+      "description": "ImpactRef links a change to one constraint."
+    },
+    "Proposal": {
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "actor": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sig": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ref",
+        "actor",
+        "at"
+      ],
+      "description": "Proposal is one proposed diff (or constraint diff) by an actor."
+    },
+    "ScopeKey": {
+      "properties": {
+        "org": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ScopeKey is a coordinate in the scope lattice (ADR 0006): org × product × team × (repo, path glob) × person."
+    }
+  }
+}

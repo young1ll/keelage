@@ -1,0 +1,135 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: standard
+  enable:
+    - depguard
+    - errorlint
+    - misspell
+  settings:
+    depguard:
+      # 계층과 의존 방향 (architecture-patterns-v0 §1).
+      #   cmd → app → core ; adapter/* → port, core ; adapter 간 import 금지 ; core는 표준 라이브러리만.
+      rules:
+        core:
+          list-mode: strict
+          files:
+            - "**/internal/core/**"
+          allow:
+            - $gostd
+            - github.com/young1ll/keelage/internal/core
+        # 바운디드 컨텍스트 간 참조는 core 루트의 ID 값 객체로만. 컨텍스트끼리 import 금지.
+        core-harness:
+          list-mode: lax
+          files: ["**/internal/core/harness/**"]
+          deny:
+            - pkg: github.com/young1ll/keelage/internal/core/accountability
+              desc: "컨텍스트 간 import 금지 — ID 값 객체(core 루트)로만 참조"
+            - pkg: github.com/young1ll/keelage/internal/core/realization
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/supply
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/work
+              desc: "컨텍스트 간 import 금지"
+        core-accountability:
+          list-mode: lax
+          files: ["**/internal/core/accountability/**"]
+          deny:
+            - pkg: github.com/young1ll/keelage/internal/core/harness
+              desc: "컨텍스트 간 import 금지 — ID 값 객체(core 루트)로만 참조"
+            - pkg: github.com/young1ll/keelage/internal/core/realization
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/supply
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/work
+              desc: "컨텍스트 간 import 금지"
+        core-realization:
+          list-mode: lax
+          files: ["**/internal/core/realization/**"]
+          deny:
+            - pkg: github.com/young1ll/keelage/internal/core/harness
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/accountability
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/supply
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/work
+              desc: "컨텍스트 간 import 금지"
+        core-supply:
+          list-mode: lax
+          files: ["**/internal/core/supply/**"]
+          deny:
+            - pkg: github.com/young1ll/keelage/internal/core/harness
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/accountability
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/realization
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/work
+              desc: "컨텍스트 간 import 금지"
+        core-work:
+          list-mode: lax
+          files: ["**/internal/core/work/**"]
+          deny:
+            - pkg: github.com/young1ll/keelage/internal/core/harness
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/accountability
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/realization
+              desc: "컨텍스트 간 import 금지"
+            - pkg: github.com/young1ll/keelage/internal/core/supply
+              desc: "컨텍스트 간 import 금지"
+        port:
+          list-mode: strict
+          files:
+            - "**/internal/port/**"
+          allow:
+            - $gostd
+            - github.com/young1ll/keelage/internal/core
+            - github.com/young1ll/keelage/internal/port
+        app:
+          list-mode: strict
+          files:
+            - "**/internal/app/**"
+            - "!**/internal/app/**_test.go"
+          allow:
+            - $gostd
+            - github.com/young1ll/keelage/internal/core
+            - github.com/young1ll/keelage/internal/port
+            - github.com/young1ll/keelage/internal/app
+        # app 테스트만 메모리 어댑터를 픽스처로 쓸 수 있다.
+        app-test:
+          list-mode: strict
+          files:
+            - "**/internal/app/**_test.go"
+          allow:
+            - $gostd
+            - github.com/young1ll/keelage/internal/core
+            - github.com/young1ll/keelage/internal/port
+            - github.com/young1ll/keelage/internal/app
+            - github.com/young1ll/keelage/internal/adapter/memory
+        adapter:
+          list-mode: lax
+          files:
+            - "**/internal/adapter/**"
+          deny:
+            - pkg: github.com/young1ll/keelage/internal/app
+              desc: "adapter는 port·core만 본다"
+            - pkg: github.com/young1ll/keelage/internal/adapter
+              desc: "adapter 간 import 금지"
+            - pkg: github.com/young1ll/keelage/cmd
+              desc: "adapter는 cmd를 보지 않는다"
+            - pkg: github.com/young1ll/keelage/tools
+              desc: "adapter는 tools를 보지 않는다"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/young1ll/keelage

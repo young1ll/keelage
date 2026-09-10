@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/event.json",
+  "$ref": "#/$defs/Envelope",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "Envelope": {
+      "properties": {
+        "seq": {
+          "type": "integer"
+        },
+        "stream": {
+          "type": "string"
+        },
+        "ver": {
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "meta": {
+          "$ref": "#/$defs/EventMeta"
+        },
+        "body": {
+          "type": "object"
+        },
+        "meta_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "body_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "prev_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sig": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "description": "Sig is the signature over Hash by the appending actor's key (optional in v0)."
+        },
+        "idem": {
+          "type": "string",
+          "description": "Idem is the command idempotency key, set on the first event of a\ncommand; the ledger enforces UNIQUE(stream, idem)."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "seq",
+        "stream",
+        "ver",
+        "kind",
+        "v",
+        "ts",
+        "actor",
+        "meta",
+        "body",
+        "meta_hash",
+        "body_hash",
+        "prev_hash",
+        "hash"
+      ],
+      "description": "Envelope is a ledger record: one event with its ordering, actor, meta, body and the hash chain."
+    },
+    "EventMeta": {
+      "properties": {
+        "refs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "constraints_hash": {
+          "type": "string"
+        },
+        "autonomy": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "autonomy"
+      ],
+      "description": "EventMeta is the reference part of an event: what it points at and the harness snapshot it was decided under."
+    }
+  }
+}

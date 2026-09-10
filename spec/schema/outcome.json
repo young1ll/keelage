@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/outcome.json",
+  "$ref": "#/$defs/Outcome",
+  "$defs": {
+    "Outcome": {
+      "properties": {
+        "window": {
+          "type": "integer"
+        },
+        "signals": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "verdict": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "window",
+        "verdict",
+        "at"
+      ],
+      "description": "Outcome is what happened after deployment."
+    }
+  }
+}

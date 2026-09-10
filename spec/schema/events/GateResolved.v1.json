@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/GateResolved.v1.json",
+  "$ref": "#/$defs/GateResolved",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "GateResolved": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "resolution": {
+          "$ref": "#/$defs/Resolution"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "resolution"
+      ],
+      "description": "GateResolved is the human's answer — the gate's Judged record."
+    },
+    "Resolution": {
+      "properties": {
+        "decision": {
+          "type": "string",
+          "description": "allow | deny"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "by": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sig": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "decision",
+        "reason",
+        "by",
+        "at"
+      ],
+      "description": "Resolution is a human's answer to an open gate, from any channel."
+    }
+  }
+}

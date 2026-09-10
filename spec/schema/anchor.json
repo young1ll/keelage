@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/anchor.json",
+  "$ref": "#/$defs/Anchor",
+  "$defs": {
+    "Anchor": {
+      "properties": {
+        "scheme": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "scheme",
+        "path"
+      ],
+      "description": "Anchor is a parsed realization anchor."
+    }
+  }
+}

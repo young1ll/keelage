@@ -1,9 +1,9 @@
-# kb — Claude Code 작업 규칙
+# keelage — Claude Code 작업 규칙
 
 이 리포는 `docs/spec/`의 스펙과 계획을 구현한다. 작업 전 다음 순서로 읽는다:
 1. `docs/spec/implementation-plan-v0.md` §9 (12주 일정과 "뺀 것" 목록)
 2. `docs/spec/architecture-patterns-v0.md` (코드 모양)
-3. 관련 ADR (`docs/adr/`)
+3. 관련 ADR (`docs/adr/`) — 스펙의 `kb`는 `keelage`로 읽는다(ADR 0009)
 
 ## 절대 규칙
 - 12주 표의 완료 기준 밖 기능은 만들지 않는다. "뺀 것" 목록(계획서 §9)은 거절 사유다.
@@ -15,6 +15,16 @@
 - 어댑터(`adapters/*`)는 각자 VERSION과 확인 날짜를 가진다. 도구 규약은 구현 직전 공식 문서로 재확인한다.
 - 개인 데이터(세션 원문)는 디스크에 저장하지 않는다. 로그 금지 필드를 지킨다.
 - 설계 결정이 바뀌면 ADR을 추가한다(`docs/adr/NNNN-title.md`, MADR). 스펙 문서를 직접 고치지 말고 ADR로 supersede한다.
+
+## 코드 구조 (1–3주차 기준)
+- `cmd/keelage`(데몬·CLI), `cmd/keelage-server` — 조립만. `tools/schemagen` — Go 구조체 → `spec/schema`.
+- `internal/core` — 값 객체(ID·ActorRef·Level·ScopeKey·Anchor·Hash3), `Event/Command/Root[T]`, `Codec`(kind·version·업캐스터), `Envelope`(meta/body 분리 해시·체인), `DecideContext`.
+  - `core/harness`: Constraint·Scope 애그리게이트. `core/accountability`: Change·Gate 애그리게이트. `core/realization`: Syntax 모델·심볼 추출·Hash3·이동 감지·Anchor 애그리게이트(review/stale 2단계). 커맨드는 `XxxCmd`(ID·Idem)를 임베드한다.
+- `internal/port` — Ledger·Clock·IDGen·Signer·Projector. `port/ledgertest`는 모든 Ledger 구현이 통과해야 하는 계약 스위트.
+- `internal/app` — 커맨드 파이프라인(`Pipeline`, `Register[T]`), 메모리 투영(`ScopeIndex`·`ConstraintIndex`·`ChangeIndex`·`AnchorIndex`), `ProjectionContext`, `Resolver`(닻→Hash3, 캐시, generic 강등), `Verifier`, `Rebuild`.
+- `internal/adapter/{memory,sqlite,ulid,uds,httpapi,git,treesitter}` — 어댑터. 서로 import 금지(depguard). `treesitter`는 wazero로 `wasm/keelage-ts.wasm`(런타임+TS/TSX, `make wasm`으로 재빌드, `VERSION` 참조)을 돌린다.
+- `cmd/keelage`: `daemon` · `anchor add|list` · `verify [--changed]`(헤드리스). e2e 테스트는 `cmd/keelage/verify_test.go`.
+- 검증: `make lint test` · `make check-generated`(스키마 생성물 diff). dogfood: `make dogfood-record` → 커밋마다 `make dogfood-verify`(docs/metrics).
 
 ## 스택
 Go 1.2x · chi · pgx+sqlc · goose · SQLite(modernc) · tree-sitter(wasm+wazero, v0는 TS만) · transparency-dev/merkle · cobra · React+Vite(13주 이후)

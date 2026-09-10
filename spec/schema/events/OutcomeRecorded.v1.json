@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/OutcomeRecorded.v1.json",
+  "$ref": "#/$defs/OutcomeRecorded",
+  "$defs": {
+    "Outcome": {
+      "properties": {
+        "window": {
+          "type": "integer"
+        },
+        "signals": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "verdict": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "window",
+        "verdict",
+        "at"
+      ],
+      "description": "Outcome is what happened after deployment."
+    },
+    "OutcomeRecorded": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "outcome"
+      ],
+      "description": "OutcomeRecorded records the outcome."
+    }
+  }
+}

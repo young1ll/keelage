@@ -1,0 +1,219 @@
+openapi: 3.1.0
+info:
+  title: keelage-server API
+  version: 0.0.1-draft
+  description: |
+    keelage 팀 서버 API 초안(design-first, 손 작성). 12주 범위(implementation-plan-v0 §4.6)의
+    표면만 선언하고 본문 스키마는 `spec/schema/*.json`(Go 구조체에서 생성)을 참조한다.
+    구현은 10–12주차. 그 전까지 경로·의미는 바뀔 수 있으나 객체 스키마는 생성물이 원천이다.
+servers:
+  - url: https://{host}
+    variables:
+      host:
+        default: keelage.example.com
+tags:
+  - name: health
+  - name: gates
+    description: 승인 브로커 — 에이전트가 행동 전에 묻고, 사람이 자기 채널에서 답하고, 답은 원장에 남는다 (spec §3.6a).
+  - name: sync
+    description: 데몬↔서버 연합 로그 (spec §3.6c, patterns §9).
+  - name: ledger
+    description: 투명성 로그 증명 (ADR 0004).
+  - name: harness
+  - name: changes
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      operationId: health
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, name, version]
+                properties:
+                  ok: { type: boolean }
+                  name: { type: string }
+                  version: { type: string }
+
+  /gates:
+    post:
+      tags: [gates]
+      operationId: requestGate
+      summary: 행동 전 판정 요청 (allow | deny | ask)
+      description: |
+        멱등: 같은 `(actor, proposal_ref)`는 같은 gate를 돌려준다. 판정은 자율 수준·상한·소유 지도로
+        즉시 결정되며 `ask`면 사람이 `/gates/{id}/resolve`로 답한다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [actor, scope, proposal_ref, requested_level]
+              properties:
+                actor: { $ref: "schema/actor.json" }
+                scope: { $ref: "schema/scope-key.json" }
+                anchors:
+                  type: array
+                  items: { type: string, description: "canonical anchor, e.g. code://src/a.ts#f" }
+                action: { type: string }
+                proposal_ref: { type: string }
+                requested_level: { type: string, enum: [L0, L1, L2, L3] }
+      responses:
+        "200":
+          description: 판정
+          content:
+            application/json:
+              schema: { $ref: "schema/gate.json" }
+        "400": { $ref: "#/components/responses/Rejected" }
+  /gates/{id}/resolve:
+    post:
+      tags: [gates]
+      operationId: resolveGate
+      summary: 열린 gate에 사람이 답한다
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, reason, by]
+              properties:
+                decision: { type: string, enum: [allow, deny] }
+                reason: { type: string }
+                by: { $ref: "schema/actor.json" }
+                sig: { type: string }
+      responses:
+        "200":
+          description: 해결된 gate
+          content:
+            application/json:
+              schema: { $ref: "schema/gate.json" }
+        "400": { $ref: "#/components/responses/Rejected" }
+        "404": { description: 없는 gate }
+
+  /sync/push:
+    post:
+      tags: [sync]
+      operationId: syncPush
+      summary: 데몬이 서명한 이벤트를 제안으로 올린다
+      description: 서버는 서명 검증 → `origin{daemon_id, local_seq}` 유니크로 중복 제거 → 커맨드 파이프라인 재검증 → 확정 또는 Rejected.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [daemon_id, events]
+              properties:
+                daemon_id: { type: string }
+                events:
+                  type: array
+                  items: { $ref: "schema/event.json" }
+      responses:
+        "200":
+          description: 수락·거부 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: array
+                    items: { type: object, properties: { local_seq: { type: integer }, seq: { type: integer } } }
+                  rejected:
+                    type: array
+                    items: { type: object, properties: { local_seq: { type: integer }, reason: { type: string } } }
+  /sync/pull:
+    get:
+      tags: [sync]
+      operationId: syncPull
+      summary: 팀·제품 층 제약·결정·소유 지도·닻 이력 이벤트 사본
+      parameters:
+        - { name: since, in: query, schema: { type: integer }, description: 서버 seq 커서 }
+        - { name: scopes, in: query, schema: { type: string }, description: 쉼표 구분 canonical scope keys }
+      responses:
+        "200":
+          description: 이벤트
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor: { type: integer }
+                  events: { type: array, items: { $ref: "schema/event.json" } }
+
+  /ledger/proof/inclusion:
+    get:
+      tags: [ledger]
+      operationId: inclusionProof
+      parameters:
+        - { name: seq, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: rfc6962 포함 증명 (10–11주차) }
+  /ledger/proof/consistency:
+    get:
+      tags: [ledger]
+      operationId: consistencyProof
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: integer } }
+        - { name: to, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: rfc6962 일관성 증명 (10–11주차) }
+
+  /constraints:
+    get:
+      tags: [harness]
+      operationId: listConstraints
+      parameters:
+        - { name: scope, in: query, schema: { type: string }, description: canonical scope key; 해당 범위에 유효한 제약(넓은 우선) }
+      responses:
+        "200":
+          description: 제약 목록
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "schema/constraint.json" } }
+  /changes:
+    get:
+      tags: [changes]
+      operationId: listChanges
+      parameters:
+        - { name: state, in: query, schema: { type: string, enum: [proposed, judged, deployed, observed, settled] } }
+      responses:
+        "200":
+          description: Change 목록
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "schema/change.json" } }
+  /changes/{id}/judgments:
+    post:
+      tags: [changes]
+      operationId: judgeChange
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "schema/judgment.json" }
+      responses:
+        "200":
+          description: 갱신된 Change
+          content:
+            application/json:
+              schema: { $ref: "schema/change.json" }
+        "400": { $ref: "#/components/responses/Rejected" }
+
+components:
+  responses:
+    Rejected:
+      description: 애그리게이트 규칙이 커맨드를 거부했다. 거부는 원장에 `Rejected` 이벤트로도 남는다.
+      content:
+        application/json:
+          schema: { $ref: "schema/rejected.json" }

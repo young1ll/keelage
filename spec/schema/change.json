@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/change.json",
+  "$ref": "#/$defs/Change",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "Change": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "intent_ref": {
+          "type": "string"
+        },
+        "no_intent": {
+          "type": "boolean"
+        },
+        "proposals": {
+          "items": {
+            "$ref": "#/$defs/Proposal"
+          },
+          "type": "array"
+        },
+        "impact": {
+          "$ref": "#/$defs/Impact"
+        },
+        "judgments": {
+          "items": {
+            "$ref": "#/$defs/Judgment"
+          },
+          "type": "array"
+        },
+        "deployment": {
+          "$ref": "#/$defs/Deployment"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "derived": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "autonomy_applied": {
+          "type": "string",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ]
+        },
+        "state": {
+          "type": "string"
+        },
+        "opened_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "settled_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "mode",
+        "impact",
+        "autonomy_applied",
+        "state",
+        "opened_at"
+      ],
+      "description": "Change is the unit of the product (ADR 0001): a change to the harness or to a realization, with its proposals, impact, judgments, deployment and outcome."
+    },
+    "Deployment": {
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ref",
+        "at"
+      ],
+      "description": "Deployment records when and where the change went live."
+    },
+    "Impact": {
+      "properties": {
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/ImpactRef"
+          },
+          "type": "array"
+        },
+        "decisions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "anchors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Impact is what the change touches."
+    },
+    "ImpactRef": {
+      "properties": {
+        "constraint": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "constraint",
+        "relation"
+      ],
+      "description": "ImpactRef links a change to one constraint."
+    },
+    "Judgment": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "by": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string"
+        },
+        "sig": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "decision",
+        "by",
+        "at",
+        "source"
+      ],
+      "description": "Judgment is a signed decision about a change (spec §3.1)."
+    },
+    "Outcome": {
+      "properties": {
+        "window": {
+          "type": "integer"
+        },
+        "signals": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "verdict": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "window",
+        "verdict",
+        "at"
+      ],
+      "description": "Outcome is what happened after deployment."
+    },
+    "Proposal": {
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "actor": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sig": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ref",
+        "actor",
+        "at"
+      ],
+      "description": "Proposal is one proposed diff (or constraint diff) by an actor."
+    }
+  }
+}

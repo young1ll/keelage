@@ -3,6 +3,6 @@
 *.db
 *.db-wal
 *.db-shm
-.kb/context/
+.keelage/context/
 node_modules/
 web/dist/

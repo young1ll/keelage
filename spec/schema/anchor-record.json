@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/anchor-record.json",
+  "$ref": "#/$defs/Anchor",
+  "$defs": {
+    "Anchor": {
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "canonical anchor string"
+        },
+        "hash": {
+          "$ref": "#/$defs/Hash3"
+        },
+        "state": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string",
+          "description": "commit the hash was taken at"
+        },
+        "moved_to": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verifies": {
+          "type": "integer"
+        },
+        "staled": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "hash",
+        "state",
+        "updated_at",
+        "verifies",
+        "staled"
+      ],
+      "description": "Anchor is the aggregate that tracks one realization anchor's hash and state over time."
+    },
+    "Hash3": {
+      "properties": {
+        "signature": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "signature",
+        "body",
+        "file"
+      ],
+      "description": "Hash3 is the three-layer anchor hash (spec §1 \"낡음 판정\"): signature, body, file."
+    }
+  }
+}

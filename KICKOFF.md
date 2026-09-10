@@ -3,13 +3,13 @@
 ## 0. 리포 준비
 ```
 git init && git add . && git commit -m "docs: spec, plan, patterns, ADR 0001-0008"
-gh repo create young1ll/<이름> --private --source=. --push
+gh repo create young1ll/keelage --private --source=. --push
 ```
-이름은 4주차 전에 확정(계획서 §9). 임시로 `kb-workbench` 가능.
+이름은 `keelage`로 확정(ADR 0009).
 
 ## 1. 골격 (1주차)
 > CLAUDE.md와 docs/spec/architecture-patterns-v0.md §1을 읽고, Go 모듈 골격을 만들어줘.
-> cmd/kb, cmd/kb-server, internal/{core,app,port,adapter}, spec/ 디렉터리.
+> cmd/keelage, cmd/keelage-server, internal/{core,app,port,adapter}, spec/ 디렉터리.
 > golangci-lint + depguard로 import 규칙(§1)을 강제하는 설정을 넣고, 빈 데몬/서버가 기동되게 해줘.
 > 아직 기능은 만들지 마. 뺀 것 목록을 지켜.
 

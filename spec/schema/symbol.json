@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/symbol.json",
+  "$ref": "#/$defs/Symbol",
+  "$defs": {
+    "Symbol": {
+      "properties": {
+        "Name": {
+          "type": "string",
+          "description": "qualified: Outer.inner"
+        },
+        "Kind": {
+          "type": "string",
+          "description": "node type of the declaration"
+        },
+        "Exported": {
+          "type": "boolean"
+        },
+        "Start": {
+          "type": "integer"
+        },
+        "End": {
+          "type": "integer"
+        },
+        "Signature": {
+          "type": "string",
+          "description": "normalized header text"
+        },
+        "Body": {
+          "type": "string",
+          "description": "normalized S-expression of the body subtree"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "Name",
+        "Kind",
+        "Exported",
+        "Start",
+        "End",
+        "Signature",
+        "Body"
+      ],
+      "description": "Symbol is a named declaration with the material for its Hash3."
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "latest": {
+    "AnchorMoved": 1,
+    "AnchorRecorded": 1,
+    "AnchorStaled": 1,
+    "AnchorVerified": 1,
+    "AutonomyChanged": 1,
+    "CapChanged": 1,
+    "ChangeOpened": 1,
+    "ConstraintDemoted": 1,
+    "ConstraintDrafted": 1,
+    "ConstraintPromoted": 1,
+    "ConstraintRetired": 1,
+    "ConstraintSuperseded": 1,
+    "ConstraintVerified": 1,
+    "Deployed": 1,
+    "ExceptionRaised": 1,
+    "GateDecided": 1,
+    "GateExpired": 1,
+    "GateOpened": 1,
+    "GateResolved": 1,
+    "Judged": 1,
+    "OutcomeRecorded": 1,
+    "ProposalAdded": 1,
+    "Rejected": 1,
+    "Settled": 1
+  }
+}
