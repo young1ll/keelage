@@ -1,9 +1,9 @@
-# kb — Claude Code 작업 규칙
+# keelage — Claude Code 작업 규칙
 
 이 리포는 `docs/spec/`의 스펙과 계획을 구현한다. 작업 전 다음 순서로 읽는다:
 1. `docs/spec/implementation-plan-v0.md` §9 (12주 일정과 "뺀 것" 목록)
 2. `docs/spec/architecture-patterns-v0.md` (코드 모양)
-3. 관련 ADR (`docs/adr/`)
+3. 관련 ADR (`docs/adr/`) — 스펙의 `kb`는 `keelage`로 읽는다(ADR 0009)
 
 ## 절대 규칙
 - 12주 표의 완료 기준 밖 기능은 만들지 않는다. "뺀 것" 목록(계획서 §9)은 거절 사유다.
