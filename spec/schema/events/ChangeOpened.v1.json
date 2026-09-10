@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/young1ll/keelage/spec/schema/events/ChangeOpened.v1.json",
-  "$ref": "#/$defs/ChangeOpened",
+  "$ref": "#/$defs/ChangeOpenedV1",
   "$defs": {
     "ActorRef": {
       "properties": {
@@ -28,7 +28,7 @@
       ],
       "description": "ActorRef identifies who acted."
     },
-    "ChangeOpened": {
+    "ChangeOpenedV1": {
       "properties": {
         "id": {
           "type": "string"
@@ -83,7 +83,7 @@
         "by",
         "at"
       ],
-      "description": "ChangeOpened is the creation event."
+      "description": "ChangeOpenedV1 is the original creation event, kept so old ledgers decode; the codec upcasts it to ChangeOpened (v2)."
     },
     "Impact": {
       "properties": {

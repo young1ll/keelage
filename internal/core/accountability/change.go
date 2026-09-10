@@ -138,6 +138,7 @@ type Change struct {
 	Deployment      *Deployment `json:"deployment,omitempty"`
 	Outcome         *Outcome    `json:"outcome,omitempty"`
 	Derived         []core.ID   `json:"derived,omitempty"`
+	Sessions        []string    `json:"sessions,omitempty"` // session streams whose edits this change bundles
 	AutonomyApplied core.Level  `json:"autonomy_applied"`
 	State           ChangeState `json:"state"`
 	OpenedAt        time.Time   `json:"opened_at"`
@@ -173,6 +174,7 @@ type OpenChange struct {
 	NoIntent   bool
 	Impact     Impact
 	Proposal   *Proposal
+	Sessions   []string
 }
 
 func (OpenChange) Kind() string                 { return "OpenChange" }
@@ -221,8 +223,9 @@ func (Settle) Kind() string { return "Settle" }
 
 // ---- events ----
 
-// ChangeOpened is the creation event.
-type ChangeOpened struct {
+// ChangeOpenedV1 is the original creation event, kept so old ledgers
+// decode; the codec upcasts it to ChangeOpened (v2).
+type ChangeOpenedV1 struct {
 	ID              core.ID       `json:"id"`
 	ChangeKind      ChangeKind    `json:"kind"`
 	Mode            ChangeMode    `json:"mode"`
@@ -236,8 +239,27 @@ type ChangeOpened struct {
 	At              time.Time     `json:"at"`
 }
 
+func (ChangeOpenedV1) Kind() string { return "ChangeOpened" }
+func (ChangeOpenedV1) Version() int { return 1 }
+
+// ChangeOpened is the creation event (v2: adds sessions).
+type ChangeOpened struct {
+	ID              core.ID       `json:"id"`
+	ChangeKind      ChangeKind    `json:"kind"`
+	Mode            ChangeMode    `json:"mode"`
+	Scope           core.ScopeKey `json:"scope"`
+	IntentRef       core.ID       `json:"intent_ref,omitempty"`
+	NoIntent        bool          `json:"no_intent,omitempty"`
+	Impact          Impact        `json:"impact"`
+	Proposal        *Proposal     `json:"proposal,omitempty"`
+	Sessions        []string      `json:"sessions,omitempty"`
+	AutonomyApplied core.Level    `json:"autonomy_applied"`
+	By              core.ActorRef `json:"by"`
+	At              time.Time     `json:"at"`
+}
+
 func (ChangeOpened) Kind() string { return "ChangeOpened" }
-func (ChangeOpened) Version() int { return 1 }
+func (ChangeOpened) Version() int { return 2 }
 
 // ProposalAdded appends a proposal.
 type ProposalAdded struct {
@@ -343,7 +365,7 @@ func (c Change) open(m OpenChange, ctx core.DecideContext) ([]core.Event, error)
 	}
 	return []core.Event{ChangeOpened{
 		ID: m.ID, ChangeKind: m.ChangeKind, Mode: m.Mode, Scope: m.Scope, IntentRef: m.IntentRef, NoIntent: m.NoIntent,
-		Impact: m.Impact, Proposal: m.Proposal, AutonomyApplied: level, By: ctx.Actor, At: ctx.Now,
+		Impact: m.Impact, Proposal: m.Proposal, Sessions: m.Sessions, AutonomyApplied: level, By: ctx.Actor, At: ctx.Now,
 	}}, nil
 }
 
@@ -517,7 +539,7 @@ func (c Change) Apply(e core.Event) Change {
 	case ChangeOpened:
 		c = Change{
 			ID: v.ID, Kind: v.ChangeKind, Mode: v.Mode, IntentRef: v.IntentRef, NoIntent: v.NoIntent,
-			Impact: v.Impact, AutonomyApplied: v.AutonomyApplied, State: StateProposed, OpenedAt: v.At,
+			Impact: v.Impact, Sessions: v.Sessions, AutonomyApplied: v.AutonomyApplied, State: StateProposed, OpenedAt: v.At,
 		}
 		if v.Proposal != nil {
 			c.Proposals = []Proposal{*v.Proposal}

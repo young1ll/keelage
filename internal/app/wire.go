@@ -32,6 +32,8 @@ func RegisterAll(p *Pipeline) {
 		accountability.Deploy{}.Kind(), accountability.RecordOutcome{}.Kind(), accountability.Settle{}.Kind())
 	Register(p, func(string) accountability.Gate { return accountability.Gate{} },
 		accountability.RequestGate{}.Kind(), accountability.ResolveGate{}.Kind(), accountability.ExpireGate{}.Kind())
+	Register(p, func(string) accountability.Session { return accountability.Session{} },
+		accountability.StartSession{}.Kind(), accountability.RecordTurn{}.Kind(), accountability.EndSession{}.Kind(), accountability.ShareSession{}.Kind())
 	Register(p, func(string) realization.Anchor { return realization.Anchor{} },
 		realization.RecordAnchor{}.Kind(), realization.VerifyAnchor{}.Kind(), realization.MoveAnchor{}.Kind())
 }

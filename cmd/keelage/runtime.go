@@ -35,6 +35,7 @@ type coreRuntime struct {
 	constraints *app.ConstraintIndex
 	changes     *app.ChangeIndex
 	anchors     *app.AnchorIndex
+	sessions    *app.SessionIndex
 	pipeline    *app.Pipeline
 	hooks       *app.Hooks
 	ids         port.IDGen
@@ -62,7 +63,7 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 	c := &coreRuntime{
 		home: home, ledger: ledger, codec: app.NewCodec(),
 		scopes: app.NewScopeIndex(), constraints: app.NewConstraintIndex(), changes: app.NewChangeIndex(), anchors: app.NewAnchorIndex(),
-		ids: ulid.New(),
+		sessions: app.NewSessionIndex(), ids: ulid.New(),
 	}
 	if c.seq, err = app.Rebuild(ctx, ledger, c.codec, c.projectors()...); err != nil {
 		_ = ledger.Close()
@@ -73,12 +74,12 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 		Projectors: c.projectors(),
 	})
 	app.RegisterAll(c.pipeline)
-	c.hooks = app.NewHooks(c.anchors, c.constraints, clock{})
+	c.hooks = app.NewHooks(c.anchors, c.constraints, clock{}).WithCapture(c.pipeline, localUser())
 	return c, nil
 }
 
 func (c *coreRuntime) projectors() []port.Projector {
-	return []port.Projector{c.scopes, c.constraints, c.changes, c.anchors}
+	return []port.Projector{c.scopes, c.constraints, c.changes, c.anchors, c.sessions}
 }
 
 // catchUp projects records written by other processes since the last look.
@@ -108,7 +109,17 @@ type headless struct {
 	repo     *git.Repo
 	actor    core.ActorRef
 	verifier *app.Verifier
+	deriver  *app.Deriver
 	ts       *treesitter.Runtime
+}
+
+// localUser identifies the person this daemon runs for (the owner of every
+// agent actor it records).
+func localUser() core.ID {
+	if u, err := user.Current(); err == nil && u.Username != "" {
+		return core.ID(u.Username)
+	}
+	return "local"
 }
 
 func openHeadless(ctx context.Context, repoDir string) (*headless, error) {
@@ -136,7 +147,12 @@ func openHeadless(ctx context.Context, repoDir string) (*headless, error) {
 		c.close()
 		return nil, err
 	}
-	h.verifier = &app.Verifier{Pipeline: c.pipeline, Anchors: c.anchors, Resolver: app.NewResolver(repo.Root, treesitter.NewResolver(h.ts))}
+	parser := treesitter.NewResolver(h.ts)
+	h.verifier = &app.Verifier{Pipeline: c.pipeline, Anchors: c.anchors, Resolver: app.NewResolver(repo.Root, parser)}
+	h.deriver = &app.Deriver{
+		Pipeline: c.pipeline, Commits: repo, Parser: parser, Constraints: c.constraints, Sessions: c.sessions, Changes: c.changes,
+		IDs: c.ids, Repo: app.RepoID(repo.Root),
+	}
 	return h, nil
 }
 

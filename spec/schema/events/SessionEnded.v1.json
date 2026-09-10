@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/SessionEnded.v1.json",
+  "$ref": "#/$defs/SessionEnded",
+  "$defs": {
+    "SessionEnded": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "summary",
+        "at"
+      ],
+      "description": "SessionEnded closes the session with its derived summary."
+    }
+  }
+}

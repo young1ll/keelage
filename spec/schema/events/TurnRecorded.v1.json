@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/TurnRecorded.v1.json",
+  "$ref": "#/$defs/TurnRecorded",
+  "$defs": {
+    "Turn": {
+      "properties": {
+        "seq": {
+          "type": "integer"
+        },
+        "class": {
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "repo-relative"
+        },
+        "signal": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "seq",
+        "class",
+        "at"
+      ],
+      "description": "Turn is one classified turn: what was touched and how the human reacted."
+    },
+    "TurnRecorded": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "turn": {
+          "$ref": "#/$defs/Turn"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "turn"
+      ],
+      "description": "TurnRecorded is one classified turn."
+    }
+  }
+}

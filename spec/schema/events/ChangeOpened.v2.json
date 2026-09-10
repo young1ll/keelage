@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/young1ll/keelage/spec/schema/change.json",
-  "$ref": "#/$defs/Change",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/ChangeOpened.v2.json",
+  "$ref": "#/$defs/ChangeOpened",
   "$defs": {
     "ActorRef": {
       "properties": {
@@ -28,7 +28,7 @@
       ],
       "description": "ActorRef identifies who acted."
     },
-    "Change": {
+    "ChangeOpened": {
       "properties": {
         "id": {
           "type": "string"
@@ -39,45 +39,26 @@
         "mode": {
           "type": "string"
         },
+        "scope": {
+          "$ref": "#/$defs/ScopeKey"
+        },
         "intent_ref": {
           "type": "string"
         },
         "no_intent": {
           "type": "boolean"
         },
-        "proposals": {
-          "items": {
-            "$ref": "#/$defs/Proposal"
-          },
-          "type": "array"
-        },
         "impact": {
           "$ref": "#/$defs/Impact"
         },
-        "judgments": {
-          "items": {
-            "$ref": "#/$defs/Judgment"
-          },
-          "type": "array"
-        },
-        "deployment": {
-          "$ref": "#/$defs/Deployment"
-        },
-        "outcome": {
-          "$ref": "#/$defs/Outcome"
-        },
-        "derived": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+        "proposal": {
+          "$ref": "#/$defs/Proposal"
         },
         "sessions": {
           "items": {
             "type": "string"
           },
-          "type": "array",
-          "description": "session streams whose edits this change bundles"
+          "type": "array"
         },
         "autonomy_applied": {
           "type": "string",
@@ -88,14 +69,10 @@
             "L3"
           ]
         },
-        "state": {
-          "type": "string"
+        "by": {
+          "$ref": "#/$defs/ActorRef"
         },
-        "opened_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "settled_at": {
+        "at": {
           "type": "string",
           "format": "date-time"
         }
@@ -106,30 +83,13 @@
         "id",
         "kind",
         "mode",
+        "scope",
         "impact",
         "autonomy_applied",
-        "state",
-        "opened_at"
-      ],
-      "description": "Change is the unit of the product (ADR 0001): a change to the harness or to a realization, with its proposals, impact, judgments, deployment and outcome."
-    },
-    "Deployment": {
-      "properties": {
-        "ref": {
-          "type": "string"
-        },
-        "at": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "ref",
+        "by",
         "at"
       ],
-      "description": "Deployment records when and where the change went live."
+      "description": "ChangeOpened is the creation event (v2: adds sessions)."
     },
     "Impact": {
       "properties": {
@@ -173,70 +133,6 @@
       ],
       "description": "ImpactRef links a change to one constraint."
     },
-    "Judgment": {
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "decision": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
-        },
-        "by": {
-          "$ref": "#/$defs/ActorRef"
-        },
-        "at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "source": {
-          "type": "string"
-        },
-        "sig": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "id",
-        "decision",
-        "by",
-        "at",
-        "source"
-      ],
-      "description": "Judgment is a signed decision about a change (spec §3.1)."
-    },
-    "Outcome": {
-      "properties": {
-        "window": {
-          "type": "integer"
-        },
-        "signals": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "verdict": {
-          "type": "string"
-        },
-        "at": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "window",
-        "verdict",
-        "at"
-      ],
-      "description": "Outcome is what happened after deployment."
-    },
     "Proposal": {
       "properties": {
         "ref": {
@@ -261,6 +157,31 @@
         "at"
       ],
       "description": "Proposal is one proposed diff (or constraint diff) by an actor."
+    },
+    "ScopeKey": {
+      "properties": {
+        "org": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ScopeKey is a coordinate in the scope lattice (ADR 0006): org × product × team × (repo, path glob) × person."
     }
   }
 }

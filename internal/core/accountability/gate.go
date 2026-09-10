@@ -299,7 +299,15 @@ func (g Gate) Apply(e core.Event) Gate {
 
 // RegisterEvents registers this context's events with the codec.
 func RegisterEvents(c *core.Codec) {
+	c.Register(ChangeOpenedV1{})
 	c.Register(ChangeOpened{})
+	c.Upcast("ChangeOpened", 1, func(e core.Event) core.Event {
+		v := e.(ChangeOpenedV1)
+		return ChangeOpened{
+			ID: v.ID, ChangeKind: v.ChangeKind, Mode: v.Mode, Scope: v.Scope, IntentRef: v.IntentRef, NoIntent: v.NoIntent,
+			Impact: v.Impact, Proposal: v.Proposal, AutonomyApplied: v.AutonomyApplied, By: v.By, At: v.At,
+		}
+	})
 	c.Register(ProposalAdded{})
 	c.Register(Judged{})
 	c.Register(Deployed{})
@@ -309,4 +317,8 @@ func RegisterEvents(c *core.Codec) {
 	c.Register(GateOpened{})
 	c.Register(GateResolved{})
 	c.Register(GateExpired{})
+	c.Register(SessionStarted{})
+	c.Register(TurnRecorded{})
+	c.Register(SessionEnded{})
+	c.Register(SessionShared{})
 }

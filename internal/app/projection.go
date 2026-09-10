@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/young1ll/keelage/internal/core"
 	"github.com/young1ll/keelage/internal/core/accountability"
@@ -258,10 +259,17 @@ func (c *ConstraintIndex) SnapshotHash(target core.ScopeKey) string {
 type ChangeSummary struct {
 	ID              core.ID
 	Kind            accountability.ChangeKind
+	Mode            accountability.ChangeMode
 	Scope           core.ScopeKey
 	State           accountability.ChangeState
 	AutonomyApplied core.Level
 	Judgments       int
+	Constraints     []core.ID
+	Anchors         []string
+	Refs            []string // proposal refs (commits)
+	Sessions        []string
+	OpenedAt        time.Time
+	UpdatedAt       time.Time
 }
 
 // ChangeIndex projects change events into current state.
@@ -282,23 +290,39 @@ func (c *ChangeIndex) Handle(_ context.Context, _ core.Envelope, ev core.Event) 
 	defer c.mu.Unlock()
 	switch v := ev.(type) {
 	case accountability.ChangeOpened:
-		c.entries[v.ID] = ChangeSummary{ID: v.ID, Kind: v.ChangeKind, Scope: v.Scope, State: accountability.StateProposed, AutonomyApplied: v.AutonomyApplied}
+		e := ChangeSummary{ID: v.ID, Kind: v.ChangeKind, Mode: v.Mode, Scope: v.Scope, State: accountability.StateProposed, AutonomyApplied: v.AutonomyApplied, Anchors: v.Impact.Anchors, Sessions: v.Sessions, OpenedAt: v.At, UpdatedAt: v.At}
+		for _, r := range v.Impact.Constraints {
+			e.Constraints = append(e.Constraints, r.Constraint)
+		}
+		if v.Proposal != nil {
+			e.Refs = append(e.Refs, v.Proposal.Ref)
+		}
+		c.entries[v.ID] = e
+	case accountability.ProposalAdded:
+		e := c.entries[v.ID]
+		e.Refs = append(e.Refs, v.Proposal.Ref)
+		e.UpdatedAt = v.Proposal.At
+		c.entries[v.ID] = e
 	case accountability.Judged:
 		e := c.entries[v.ID]
 		e.State = accountability.StateJudged
 		e.Judgments++
+		e.UpdatedAt = v.Judgment.At
 		c.entries[v.ID] = e
 	case accountability.Deployed:
 		e := c.entries[v.ID]
 		e.State = accountability.StateDeployed
+		e.UpdatedAt = v.Deployment.At
 		c.entries[v.ID] = e
 	case accountability.OutcomeRecorded:
 		e := c.entries[v.ID]
 		e.State = accountability.StateObserved
+		e.UpdatedAt = v.Outcome.At
 		c.entries[v.ID] = e
 	case accountability.Settled:
 		e := c.entries[v.ID]
 		e.State = accountability.StateSettled
+		e.UpdatedAt = v.At
 		c.entries[v.ID] = e
 	}
 	return nil
@@ -310,6 +334,32 @@ func (c *ChangeIndex) Get(id core.ID) (ChangeSummary, bool) {
 	defer c.mu.RUnlock()
 	e, ok := c.entries[id]
 	return e, ok
+}
+
+// ByRef finds the change whose proposal ref (commit) is ref.
+func (c *ChangeIndex) ByRef(ref string) (ChangeSummary, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	for _, e := range c.entries {
+		for _, r := range e.Refs {
+			if r == ref {
+				return e, true
+			}
+		}
+	}
+	return ChangeSummary{}, false
+}
+
+// All lists changes by ID.
+func (c *ChangeIndex) All() []ChangeSummary {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	out := make([]ChangeSummary, 0, len(c.entries))
+	for _, e := range c.entries {
+		out = append(out, e)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
 }
 
 // Open lists changes that are not settled, by ID.

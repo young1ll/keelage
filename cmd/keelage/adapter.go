@@ -46,8 +46,30 @@ func adapterCmd() *cobra.Command {
 		},
 	})
 	c.AddCommand(cc)
+	gitc := &cobra.Command{Use: "git", Short: "git hook (post-commit → change derive)"}
+	gitc.AddCommand(&cobra.Command{
+		Use:   "print post-commit",
+		Short: "Print the post-commit hook script (install as .git/hooks/post-commit, mode 0755)",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if args[0] != "post-commit" {
+				return fmt.Errorf("unknown hook %q", args[0])
+			}
+			_, _ = fmt.Fprint(cmd.OutOrStdout(), postCommitHook)
+			return nil
+		},
+	})
+	c.AddCommand(gitc)
 	return c
 }
+
+// postCommitHook derives the Change for the commit just made. It never
+// fails the commit (the commit is already done) and stays quiet on success.
+const postCommitHook = `#!/bin/sh
+# keelage: derive the Change for this commit and verify the anchors it touched.
+command -v keelage >/dev/null 2>&1 || exit 0
+keelage change derive --commit HEAD >/dev/null 2>&1 || true
+`
 
 func mcpCmd() *cobra.Command {
 	var socket string

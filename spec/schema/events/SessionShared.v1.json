@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/SessionShared.v1.json",
+  "$ref": "#/$defs/SessionShared",
+  "$defs": {
+    "SessionShared": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "parts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "parts",
+        "at"
+      ],
+      "description": "SessionShared records the user's sharing choice."
+    }
+  }
+}

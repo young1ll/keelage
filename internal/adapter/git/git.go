@@ -10,6 +10,9 @@ import (
 	"os/exec"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/young1ll/keelage/internal/port"
 )
 
 // Repo is a git working tree.
@@ -104,3 +107,62 @@ func (r *Repo) UserEmail(ctx context.Context) (string, error) {
 	}
 	return email, nil
 }
+
+// Commit implements port.Commits.
+func (r *Repo) Commit(ctx context.Context, ref string) (port.Commit, error) {
+	out, err := run(ctx, r.Root, "show", "-s", "--format=%H%x00%P%x00%ae%x00%aI%x00%B", ref)
+	if err != nil {
+		return port.Commit{}, err
+	}
+	parts := strings.SplitN(out, "\x00", 5)
+	if len(parts) < 5 {
+		return port.Commit{}, fmt.Errorf("git show: unexpected output for %s", ref)
+	}
+	c := port.Commit{SHA: parts[0], AuthorEmail: parts[2], Message: strings.TrimSpace(parts[4])}
+	if parts[1] != "" {
+		c.Parents = strings.Fields(parts[1])
+	}
+	if t, err := time.Parse(time.RFC3339, parts[3]); err == nil {
+		c.At = t
+	}
+	return c, nil
+}
+
+// ChangedIn implements port.Commits.
+func (r *Repo) ChangedIn(ctx context.Context, sha string) ([]port.FileChange, error) {
+	out, err := run(ctx, r.Root, "diff-tree", "--no-commit-id", "--name-status", "-r", "-M", "--root", sha)
+	if err != nil {
+		return nil, err
+	}
+	var files []port.FileChange
+	for _, l := range strings.Split(out, "\n") {
+		f := strings.Split(strings.TrimSpace(l), "\t")
+		if len(f) < 2 || f[0] == "" {
+			continue
+		}
+		fc := port.FileChange{Status: f[0][:1], Path: f[1]}
+		if fc.Status == "R" && len(f) >= 3 {
+			fc.OldPath, fc.Path = f[1], f[2]
+		}
+		files = append(files, fc)
+	}
+	return files, nil
+}
+
+// Content implements port.Commits.
+func (r *Repo) Content(ctx context.Context, sha, path string) ([]byte, bool, error) {
+	cmd := exec.CommandContext(ctx, "git", "show", sha+":"+path)
+	cmd.Dir = r.Root
+	var out, stderr bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &out, &stderr
+	if err := cmd.Run(); err != nil {
+		msg := stderr.String()
+		if strings.Contains(msg, "does not exist") || strings.Contains(msg, "exists on disk, but not in") || strings.Contains(msg, "invalid object name") || strings.Contains(msg, "bad object") {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("git show %s:%s: %w: %s", sha, path, err, strings.TrimSpace(msg))
+	}
+	return out.Bytes(), true, nil
+}
+
+var _ port.Commits = (*Repo)(nil)
