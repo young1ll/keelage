@@ -11,3 +11,18 @@
 - 이전 방향(참고용): `docs/archive/`
 
 12주 목표(한 문장): Claude Code를 쓰는 개인이 설치하면 편집 전에 자기 제약이 주입되고, 하루 작업이 Change·판단으로 남으며, 팀이 생기면 서버로 제약을 공유한다.
+
+## 써 보기 (6–7주차 기준, Claude Code)
+
+```sh
+make build && export PATH=$PWD/bin:$PATH
+keelage daemon &                                   # ~/.keelage/keelage.sock, ledger.db
+keelage constraint add --scope path='src/**' --anchor 'code://src/calc.ts#fee' --verify "no retries in billing"
+keelage constraint add --kind autonomy --level L0 --deny-edit --scope path='src/vault/*' --verify "vault code is edited by humans"
+keelage adapter claude-code print hooks             # → ~/.claude/settings.json 의 "hooks"에 병합
+keelage adapter claude-code print mcp               # → claude mcp add … keelage -- keelage mcp
+keelage adapter claude-code print skill             # → .claude/skills/keelage/SKILL.md (훅 없는 경로)
+```
+
+이후 Claude Code가 `src/calc.ts`를 편집하기 직전에 제약·닻 상태가 컨텍스트로 주입되고, `src/vault/*` 편집은 거부된다.
+데몬이 없거나 50ms를 넘기면 훅은 아무것도 하지 않는다(fail-open).

@@ -101,11 +101,17 @@ func (s *ScopeIndex) Entries() []ScopeEntry {
 
 // ConstraintSummary is the current state of one constraint.
 type ConstraintSummary struct {
-	ID    core.ID
-	Kind  harness.ConstraintKind
-	Scope core.ScopeKey
-	State harness.ConstraintState
-	Level core.Level
+	ID           core.ID
+	Kind         harness.ConstraintKind
+	Scope        core.ScopeKey
+	State        harness.ConstraintState
+	Level        core.Level
+	Body         string
+	Explanation  string
+	Checkable    string
+	Anchors      []string
+	Supersedes   core.ID
+	SupersededBy core.ID
 }
 
 // ConstraintIndex projects constraint events into current state.
@@ -128,7 +134,14 @@ func (c *ConstraintIndex) Handle(_ context.Context, _ core.Envelope, ev core.Eve
 	defer c.mu.Unlock()
 	switch v := ev.(type) {
 	case harness.ConstraintDrafted:
-		c.entries[v.ID] = ConstraintSummary{ID: v.ID, Kind: v.ConstraintKind, Scope: v.Scope, State: harness.StateGenerated, Level: v.Level}
+		c.entries[v.ID] = ConstraintSummary{
+			ID: v.ID, Kind: v.ConstraintKind, Scope: v.Scope, State: harness.StateGenerated, Level: v.Level,
+			Body: v.Body, Explanation: v.Explanation, Checkable: v.Checkable, Anchors: v.Anchors, Supersedes: v.Supersedes,
+		}
+	case harness.ConstraintRebound:
+		e := c.entries[v.ID]
+		e.Anchors = v.Anchors
+		c.entries[v.ID] = e
 	case harness.ConstraintVerified:
 		e := c.entries[v.ID]
 		e.State = harness.StateVerified
@@ -136,6 +149,7 @@ func (c *ConstraintIndex) Handle(_ context.Context, _ core.Envelope, ev core.Eve
 	case harness.ConstraintPromoted:
 		e := c.entries[v.ID]
 		e.Scope = v.To
+		e.Explanation = v.Explanation
 		c.entries[v.ID] = e
 	case harness.ConstraintDemoted:
 		e := c.entries[v.ID]
@@ -144,6 +158,7 @@ func (c *ConstraintIndex) Handle(_ context.Context, _ core.Envelope, ev core.Eve
 	case harness.ConstraintSuperseded:
 		e := c.entries[v.ID]
 		e.State = harness.StateRetired
+		e.SupersededBy = v.By
 		c.entries[v.ID] = e
 	case harness.ConstraintRetired:
 		e := c.entries[v.ID]
@@ -179,6 +194,43 @@ func (c *ConstraintIndex) InForce(target core.ScopeKey) []ConstraintSummary {
 		}
 		return out[i].ID < out[j].ID
 	})
+	return out
+}
+
+// BoundTo lists constraints (any non-retired state) bound to the anchor or
+// to its file anchor, sorted by ID.
+func (c *ConstraintIndex) BoundTo(anchor string) []ConstraintSummary {
+	file := anchor
+	if a, err := core.ParseAnchor(anchor); err == nil && a.Scheme == core.SchemeCode && a.Symbol != "" {
+		file = core.Anchor{Scheme: core.SchemeCode, Path: a.Path}.String()
+	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	out := []ConstraintSummary{}
+	for _, e := range c.entries {
+		if e.State == harness.StateRetired {
+			continue
+		}
+		for _, a := range e.Anchors {
+			if a == anchor || a == file {
+				out = append(out, e)
+				break
+			}
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
+}
+
+// All lists constraints sorted by ID.
+func (c *ConstraintIndex) All() []ConstraintSummary {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	out := make([]ConstraintSummary, 0, len(c.entries))
+	for _, e := range c.entries {
+		out = append(out, e)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
 

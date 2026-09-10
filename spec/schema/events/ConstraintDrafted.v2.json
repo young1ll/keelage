@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/young1ll/keelage/spec/schema/events/ConstraintDrafted.v1.json",
-  "$ref": "#/$defs/ConstraintDraftedV1",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/ConstraintDrafted.v2.json",
+  "$ref": "#/$defs/ConstraintDrafted",
   "$defs": {
-    "ConstraintDraftedV1": {
+    "ConstraintDrafted": {
       "properties": {
         "id": {
           "type": "string"
@@ -44,6 +44,12 @@
         "supersedes": {
           "type": "string"
         },
+        "anchors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "at": {
           "type": "string",
           "format": "date-time"
@@ -58,7 +64,7 @@
         "body",
         "at"
       ],
-      "description": "ConstraintDraftedV1 is the original creation event, kept so old ledgers decode; the codec upcasts it to ConstraintDrafted (v2)."
+      "description": "ConstraintDrafted is the creation event (v2: adds anchors)."
     },
     "ScopeKey": {
       "properties": {

@@ -44,6 +44,13 @@
           ],
           "description": "Level applies to KindAutonomy only."
         },
+        "anchors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Anchors are the realizations this constraint binds (persistent object\n→ anchor, never the other way round). A file anchor covers every\nsymbol in the file."
+        },
         "state": {
           "type": "string"
         },

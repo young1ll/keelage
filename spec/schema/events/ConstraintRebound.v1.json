@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/young1ll/keelage/spec/schema/events/ConstraintRebound.v1.json",
+  "$ref": "#/$defs/ConstraintRebound",
+  "$defs": {
+    "ActorRef": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key is the signing key fingerprint."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner is the responsible human for an agent instance. Required for agents."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "description": "ActorRef identifies who acted."
+    },
+    "ConstraintRebound": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "anchors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "by": {
+          "$ref": "#/$defs/ActorRef"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "anchors",
+        "by",
+        "at"
+      ],
+      "description": "ConstraintRebound replaces the bound anchors (e.g."
+    }
+  }
+}

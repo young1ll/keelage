@@ -16,14 +16,14 @@
 - 개인 데이터(세션 원문)는 디스크에 저장하지 않는다. 로그 금지 필드를 지킨다.
 - 설계 결정이 바뀌면 ADR을 추가한다(`docs/adr/NNNN-title.md`, MADR). 스펙 문서를 직접 고치지 말고 ADR로 supersede한다.
 
-## 코드 구조 (1–3주차 기준)
+## 코드 구조 (1–7주차 기준)
 - `cmd/keelage`(데몬·CLI), `cmd/keelage-server` — 조립만. `tools/schemagen` — Go 구조체 → `spec/schema`.
 - `internal/core` — 값 객체(ID·ActorRef·Level·ScopeKey·Anchor·Hash3), `Event/Command/Root[T]`, `Codec`(kind·version·업캐스터), `Envelope`(meta/body 분리 해시·체인), `DecideContext`.
-  - `core/harness`: Constraint·Scope 애그리게이트. `core/accountability`: Change·Gate 애그리게이트. `core/realization`: Syntax 모델·심볼 추출·Hash3·이동 감지·Anchor 애그리게이트(review/stale 2단계). 커맨드는 `XxxCmd`(ID·Idem)를 임베드한다.
+  - `core/harness`: Constraint(닻 바인딩 포함)·Scope 애그리게이트. `core/accountability`: Change·Gate 애그리게이트. `core/realization`: Syntax 모델·심볼 추출·Hash3·이동 감지·Anchor 애그리게이트(review/stale 2단계). `core/supply`: 정규 훅 이벤트 6종·`Compose`(사실→주입 문단·경고·차단). 커맨드는 `XxxCmd`(ID·Idem)를 임베드한다.
 - `internal/port` — Ledger·Clock·IDGen·Signer·Projector. `port/ledgertest`는 모든 Ledger 구현이 통과해야 하는 계약 스위트.
-- `internal/app` — 커맨드 파이프라인(`Pipeline`, `Register[T]`), 메모리 투영(`ScopeIndex`·`ConstraintIndex`·`ChangeIndex`·`AnchorIndex`), `ProjectionContext`, `Resolver`(닻→Hash3, 캐시, generic 강등), `Verifier`, `Rebuild`.
-- `internal/adapter/{memory,sqlite,ulid,uds,httpapi,git,treesitter}` — 어댑터. 서로 import 금지(depguard). `treesitter`는 wazero로 `wasm/keelage-ts.wasm`(런타임+TS/TSX, `make wasm`으로 재빌드, `VERSION` 참조)을 돌린다.
-- `cmd/keelage`: `daemon` · `anchor add|list` · `verify [--changed]`(헤드리스). e2e 테스트는 `cmd/keelage/verify_test.go`.
+- `internal/app` — 커맨드 파이프라인(`Pipeline`, `Register[T]`), 메모리 투영(`ScopeIndex`·`ConstraintIndex`·`ChangeIndex`·`AnchorIndex`), `ProjectionContext`, `Resolver`(닻→Hash3, 캐시, generic 강등), `Verifier`, `Rebuild`/`Replay`, `Hooks`(HookService·ContextQuery: 세션 레지스트리·사실 수집).
+- `internal/adapter/{memory,sqlite,ulid,uds,httpapi,git,treesitter,claudecode,mcp}` — 어댑터. 서로 import 금지(depguard); cmd가 배선한다. `treesitter`는 wazero로 `wasm/keelage-ts.wasm`(런타임+TS/TSX, `make wasm`으로 재빌드, `VERSION` 참조)을 돌린다. `claudecode`는 스펙의 `adapters/claude-code`(VERSION·hooks.json·SKILL.md 임베드). `mcp`는 공식 Go SDK stdio 서버(데몬 UDS의 얇은 클라이언트).
+- `cmd/keelage`: `daemon`(UDS: `/v1/hook`·`/v1/what_touches`·`/v1/related`, 원장 catch-up) · `hook <tool> <event>`(50ms fail-open) · `mcp` · `adapter claude-code print …` · `constraint add|verify|list` · `anchor add|list` · `verify [--changed]`(헤드리스). e2e: `verify_test.go`, 훅 시뮬레이터 `hook_test.go`(`testdata/hooks/claude-code/*.jsonl`, `-update`로 골든 재생성).
 - 검증: `make lint test` · `make check-generated`(스키마 생성물 diff). dogfood: `make dogfood-record` → 커밋마다 `make dogfood-verify`(docs/metrics).
 
 ## 스택

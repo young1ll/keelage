@@ -53,7 +53,11 @@ type Constraint struct {
 	Authored    bool      `json:"authored,omitempty"`
 	Explanation string    `json:"explanation,omitempty"`
 	// Level applies to KindAutonomy only.
-	Level        core.Level      `json:"level,omitempty"`
+	Level core.Level `json:"level,omitempty"`
+	// Anchors are the realizations this constraint binds (persistent object
+	// → anchor, never the other way round). A file anchor covers every
+	// symbol in the file.
+	Anchors      []string        `json:"anchors,omitempty"`
 	State        ConstraintState `json:"state"`
 	Supersedes   core.ID         `json:"supersedes,omitempty"`
 	SupersededBy core.ID         `json:"superseded_by,omitempty"`
@@ -87,6 +91,7 @@ type DraftConstraint struct {
 	Explanation    string
 	Level          core.Level
 	Supersedes     core.ID
+	Anchors        []string
 }
 
 func (DraftConstraint) Kind() string                 { return "DraftConstraint" }
@@ -142,8 +147,9 @@ func NewConstraintCmd(id core.ID, idem string) ConstraintCmd {
 
 // ---- events ----
 
-// ConstraintDrafted is the creation event.
-type ConstraintDrafted struct {
+// ConstraintDraftedV1 is the original creation event, kept so old ledgers
+// decode; the codec upcasts it to ConstraintDrafted (v2).
+type ConstraintDraftedV1 struct {
 	ID             core.ID        `json:"id"`
 	ConstraintKind ConstraintKind `json:"kind"`
 	Scope          core.ScopeKey  `json:"scope"`
@@ -157,8 +163,46 @@ type ConstraintDrafted struct {
 	At             time.Time      `json:"at"`
 }
 
+func (ConstraintDraftedV1) Kind() string { return "ConstraintDrafted" }
+func (ConstraintDraftedV1) Version() int { return 1 }
+
+// ConstraintDrafted is the creation event (v2: adds anchors).
+type ConstraintDrafted struct {
+	ID             core.ID        `json:"id"`
+	ConstraintKind ConstraintKind `json:"kind"`
+	Scope          core.ScopeKey  `json:"scope"`
+	Body           string         `json:"body"`
+	Checkable      string         `json:"checkable,omitempty"`
+	Origin         []core.ID      `json:"origin,omitempty"`
+	Authored       bool           `json:"authored,omitempty"`
+	Explanation    string         `json:"explanation,omitempty"`
+	Level          core.Level     `json:"level,omitempty"`
+	Supersedes     core.ID        `json:"supersedes,omitempty"`
+	Anchors        []string       `json:"anchors,omitempty"`
+	At             time.Time      `json:"at"`
+}
+
 func (ConstraintDrafted) Kind() string { return "ConstraintDrafted" }
-func (ConstraintDrafted) Version() int { return 1 }
+func (ConstraintDrafted) Version() int { return 2 }
+
+// ConstraintRebound replaces the bound anchors (e.g. after a move).
+type ConstraintRebound struct {
+	ID      core.ID       `json:"id"`
+	Anchors []string      `json:"anchors"`
+	By      core.ActorRef `json:"by"`
+	At      time.Time     `json:"at"`
+}
+
+func (ConstraintRebound) Kind() string { return "ConstraintRebound" }
+func (ConstraintRebound) Version() int { return 1 }
+
+// RebindConstraint replaces the anchors a constraint binds.
+type RebindConstraint struct {
+	ConstraintCmd
+	Anchors []string
+}
+
+func (RebindConstraint) Kind() string { return "RebindConstraint" }
 
 // ConstraintVerified marks verification.
 type ConstraintVerified struct {
@@ -236,6 +280,8 @@ func (c Constraint) Decide(cmd core.Command, ctx core.DecideContext) ([]core.Eve
 		return c.supersede(m, ctx)
 	case RetireConstraint:
 		return c.retire(m, ctx)
+	case RebindConstraint:
+		return c.rebind(m, ctx)
 	}
 	return nil, core.Reject("unknown-command", "constraint: %s", cmd.Kind())
 }
@@ -261,6 +307,11 @@ func (c Constraint) draft(m DraftConstraint, ctx core.DecideContext) ([]core.Eve
 	if !m.Authored && len(m.Origin) == 0 {
 		return nil, core.Reject("no-origin", "a constraint is either authored or promoted from judgments")
 	}
+	for _, a := range m.Anchors {
+		if _, err := core.ParseAnchor(a); err != nil {
+			return nil, core.Reject("invalid", "%v", err)
+		}
+	}
 	if m.ConstraintKind == KindAutonomy {
 		if !m.Level.Valid() {
 			return nil, core.Reject("invalid", "autonomy constraint needs a valid level")
@@ -272,8 +323,23 @@ func (c Constraint) draft(m DraftConstraint, ctx core.DecideContext) ([]core.Eve
 	return []core.Event{ConstraintDrafted{
 		ID: m.ID, ConstraintKind: m.ConstraintKind, Scope: m.Scope, Body: m.Body, Checkable: m.Checkable,
 		Origin: m.Origin, Authored: m.Authored, Explanation: m.Explanation, Level: m.Level,
-		Supersedes: m.Supersedes, At: ctx.Now,
+		Supersedes: m.Supersedes, Anchors: m.Anchors, At: ctx.Now,
 	}}, nil
+}
+
+func (c Constraint) rebind(m RebindConstraint, ctx core.DecideContext) ([]core.Event, error) {
+	if !c.exists() {
+		return nil, core.Reject("not-found", "constraint does not exist")
+	}
+	if c.State == StateRetired {
+		return nil, core.Reject("bad-state", "constraint is retired")
+	}
+	for _, a := range m.Anchors {
+		if _, err := core.ParseAnchor(a); err != nil {
+			return nil, core.Reject("invalid", "%v", err)
+		}
+	}
+	return []core.Event{ConstraintRebound{ID: c.ID, Anchors: m.Anchors, By: ctx.Actor, At: ctx.Now}}, nil
 }
 
 func (c Constraint) verify(ctx core.DecideContext) ([]core.Event, error) {
@@ -371,8 +437,11 @@ func (c Constraint) Apply(e core.Event) Constraint {
 		c = Constraint{
 			ID: v.ID, Kind: v.ConstraintKind, Scope: v.Scope, Body: v.Body, Checkable: v.Checkable,
 			Origin: v.Origin, Authored: v.Authored, Explanation: v.Explanation, Level: v.Level,
-			Supersedes: v.Supersedes, State: StateGenerated, UpdatedAt: v.At,
+			Supersedes: v.Supersedes, Anchors: v.Anchors, State: StateGenerated, UpdatedAt: v.At,
 		}
+	case ConstraintRebound:
+		c.Anchors = v.Anchors
+		c.UpdatedAt = v.At
 	case ConstraintVerified:
 		c.State = StateVerified
 		c.UpdatedAt = v.At
@@ -397,7 +466,16 @@ func (c Constraint) Apply(e core.Event) Constraint {
 
 // RegisterEvents registers this context's events with the codec.
 func RegisterEvents(c *core.Codec) {
+	c.Register(ConstraintDraftedV1{})
 	c.Register(ConstraintDrafted{})
+	c.Upcast("ConstraintDrafted", 1, func(e core.Event) core.Event {
+		v := e.(ConstraintDraftedV1)
+		return ConstraintDrafted{
+			ID: v.ID, ConstraintKind: v.ConstraintKind, Scope: v.Scope, Body: v.Body, Checkable: v.Checkable,
+			Origin: v.Origin, Authored: v.Authored, Explanation: v.Explanation, Level: v.Level, Supersedes: v.Supersedes, At: v.At,
+		}
+	})
+	c.Register(ConstraintRebound{})
 	c.Register(ConstraintVerified{})
 	c.Register(ConstraintPromoted{})
 	c.Register(ConstraintDemoted{})

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"sync"
 	"text/tabwriter"
 	"time"
 
@@ -16,24 +17,29 @@ import (
 	"github.com/young1ll/keelage/internal/adapter/git"
 	"github.com/young1ll/keelage/internal/adapter/sqlite"
 	"github.com/young1ll/keelage/internal/adapter/treesitter"
+	"github.com/young1ll/keelage/internal/adapter/ulid"
 	"github.com/young1ll/keelage/internal/app"
 	"github.com/young1ll/keelage/internal/core"
 	"github.com/young1ll/keelage/internal/core/realization"
 	"github.com/young1ll/keelage/internal/port"
 )
 
-// headless assembles the pipeline in-process: the personal ledger, the
-// projections rebuilt from it, and the anchor resolver. Used by commands
-// that run without the daemon (CI, `verify`, `anchor`).
-type headless struct {
-	home     string
-	ledger   *sqlite.Ledger
-	repo     *git.Repo
-	actor    core.ActorRef
-	anchors  *app.AnchorIndex
-	pipeline *app.Pipeline
-	verifier *app.Verifier
-	ts       *treesitter.Runtime
+// coreRuntime is the in-process assembly shared by the daemon and the
+// headless commands: the personal ledger, the projections rebuilt from it,
+// the pipeline and the hook service.
+type coreRuntime struct {
+	home        string
+	ledger      *sqlite.Ledger
+	codec       *core.Codec
+	scopes      *app.ScopeIndex
+	constraints *app.ConstraintIndex
+	changes     *app.ChangeIndex
+	anchors     *app.AnchorIndex
+	pipeline    *app.Pipeline
+	hooks       *app.Hooks
+	ids         port.IDGen
+	seq         int64
+	mu          sync.Mutex
 }
 
 // clock is the wall clock.
@@ -41,7 +47,7 @@ type clock struct{}
 
 func (clock) Now() time.Time { return time.Now() }
 
-func openHeadless(ctx context.Context, repoDir string) (*headless, error) {
+func openCore(ctx context.Context) (*coreRuntime, error) {
 	home, err := resolveHome()
 	if err != nil {
 		return nil, err
@@ -49,16 +55,73 @@ func openHeadless(ctx context.Context, repoDir string) (*headless, error) {
 	if err := os.MkdirAll(filepath.Join(home, "cache"), 0o700); err != nil {
 		return nil, fmt.Errorf("create home: %w", err)
 	}
-	repo, err := git.Open(ctx, repoDir)
-	if err != nil {
-		return nil, err
-	}
 	ledger, err := sqlite.Open(filepath.Join(home, "ledger.db"), nil)
 	if err != nil {
 		return nil, err
 	}
-	h := &headless{home: home, ledger: ledger, repo: repo}
+	c := &coreRuntime{
+		home: home, ledger: ledger, codec: app.NewCodec(),
+		scopes: app.NewScopeIndex(), constraints: app.NewConstraintIndex(), changes: app.NewChangeIndex(), anchors: app.NewAnchorIndex(),
+		ids: ulid.New(),
+	}
+	if c.seq, err = app.Rebuild(ctx, ledger, c.codec, c.projectors()...); err != nil {
+		_ = ledger.Close()
+		return nil, err
+	}
+	c.pipeline = app.New(app.Options{
+		Ledger: ledger, Codec: c.codec, Clock: clock{}, Context: app.ProjectionContext{Scopes: c.scopes, Constraints: c.constraints},
+		Projectors: c.projectors(),
+	})
+	app.RegisterAll(c.pipeline)
+	c.hooks = app.NewHooks(c.anchors, c.constraints, clock{})
+	return c, nil
+}
 
+func (c *coreRuntime) projectors() []port.Projector {
+	return []port.Projector{c.scopes, c.constraints, c.changes, c.anchors}
+}
+
+// catchUp projects records written by other processes since the last look.
+func (c *coreRuntime) catchUp(ctx context.Context) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	head, err := c.ledger.Head(ctx)
+	if err != nil {
+		return err
+	}
+	if head.Seq <= c.seq {
+		return nil
+	}
+	seq, err := app.Replay(ctx, c.ledger, c.codec, c.seq, c.projectors()...)
+	if err == nil {
+		c.seq = seq
+	}
+	return err
+}
+
+func (c *coreRuntime) close() { _ = c.ledger.Close() }
+
+// headless adds a repository and the anchor resolver: used by commands that
+// run without the daemon (CI, `verify`, `anchor`, `constraint`).
+type headless struct {
+	*coreRuntime
+	repo     *git.Repo
+	actor    core.ActorRef
+	verifier *app.Verifier
+	ts       *treesitter.Runtime
+}
+
+func openHeadless(ctx context.Context, repoDir string) (*headless, error) {
+	c, err := openCore(ctx)
+	if err != nil {
+		return nil, err
+	}
+	repo, err := git.Open(ctx, repoDir)
+	if err != nil {
+		c.close()
+		return nil, err
+	}
+	h := &headless{coreRuntime: c, repo: repo}
 	id, err := repo.UserEmail(ctx)
 	if err != nil {
 		if u, uerr := user.Current(); uerr == nil {
@@ -68,27 +131,12 @@ func openHeadless(ctx context.Context, repoDir string) (*headless, error) {
 		}
 	}
 	h.actor = core.ActorRef{Kind: core.ActorHuman, ID: core.ID(id)}
-
-	codec := app.NewCodec()
-	scopes, constraints, changes := app.NewScopeIndex(), app.NewConstraintIndex(), app.NewChangeIndex()
-	h.anchors = app.NewAnchorIndex()
-	projectors := []port.Projector{scopes, constraints, changes, h.anchors}
-	if _, err := app.Rebuild(ctx, ledger, codec, projectors...); err != nil {
-		_ = ledger.Close()
-		return nil, err
-	}
-	h.pipeline = app.New(app.Options{
-		Ledger: ledger, Codec: codec, Clock: clock{}, Context: app.ProjectionContext{Scopes: scopes, Constraints: constraints},
-		Projectors: projectors,
-	})
-	app.RegisterAll(h.pipeline)
-
-	h.ts, err = treesitter.NewRuntime(ctx, filepath.Join(home, "cache", "wazero"))
+	h.ts, err = treesitter.NewRuntime(ctx, filepath.Join(c.home, "cache", "wazero"))
 	if err != nil {
-		_ = ledger.Close()
+		c.close()
 		return nil, err
 	}
-	h.verifier = &app.Verifier{Pipeline: h.pipeline, Anchors: h.anchors, Resolver: app.NewResolver(repo.Root, treesitter.NewResolver(h.ts))}
+	h.verifier = &app.Verifier{Pipeline: c.pipeline, Anchors: c.anchors, Resolver: app.NewResolver(repo.Root, treesitter.NewResolver(h.ts))}
 	return h, nil
 }
 
@@ -96,7 +144,7 @@ func (h *headless) close(ctx context.Context) {
 	if h.ts != nil {
 		_ = h.ts.Close(ctx)
 	}
-	_ = h.ledger.Close()
+	h.coreRuntime.close()
 }
 
 func anchorCmd() *cobra.Command {
