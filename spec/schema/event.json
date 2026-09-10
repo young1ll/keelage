@@ -82,6 +82,10 @@
         "idem": {
           "type": "string",
           "description": "Idem is the command idempotency key, set on the first event of a\ncommand; the ledger enforces UNIQUE(stream, idem)."
+        },
+        "origin": {
+          "$ref": "#/$defs/Origin",
+          "description": "Origin is where a synced record came from (daemon id + its local\nseq); the server ledger enforces UNIQUE(org, origin). Not hashed."
         }
       },
       "additionalProperties": false,
@@ -130,6 +134,27 @@
         "autonomy"
       ],
       "description": "EventMeta is the reference part of an event: what it points at and the harness snapshot it was decided under."
+    },
+    "Origin": {
+      "properties": {
+        "daemon_id": {
+          "type": "string"
+        },
+        "local_seq": {
+          "type": "integer"
+        },
+        "prev_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "daemon_id",
+        "local_seq"
+      ],
+      "description": "Origin identifies a record's source daemon and local position."
     }
   }
 }

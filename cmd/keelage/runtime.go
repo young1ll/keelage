@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/young1ll/keelage/internal/adapter/git"
+	"github.com/young1ll/keelage/internal/adapter/keys"
 	"github.com/young1ll/keelage/internal/adapter/sqlite"
 	"github.com/young1ll/keelage/internal/adapter/treesitter"
 	"github.com/young1ll/keelage/internal/adapter/ulid"
@@ -29,7 +30,9 @@ import (
 // the pipeline and the hook service.
 type coreRuntime struct {
 	home        string
+	key         *keys.Key
 	ledger      *sqlite.Ledger
+	cache       *sqlite.Ledger // team layer pulled from the server (~/.keelage/cache/team.db)
 	codec       *core.Codec
 	scopes      *app.ScopeIndex
 	constraints *app.ConstraintIndex
@@ -41,6 +44,7 @@ type coreRuntime struct {
 	hooks       *app.Hooks
 	ids         port.IDGen
 	seq         int64
+	cacheSeq    int64
 	mu          sync.Mutex
 }
 
@@ -57,17 +61,33 @@ func openCore(ctx context.Context) (*coreRuntime, error) {
 	if err := os.MkdirAll(filepath.Join(home, "cache"), 0o700); err != nil {
 		return nil, fmt.Errorf("create home: %w", err)
 	}
-	ledger, err := sqlite.Open(filepath.Join(home, "ledger.db"), nil)
+	// every local record is signed with the daemon key (~/.keelage/keys, 0600)
+	key, err := keys.LoadOrCreate(filepath.Join(home, "keys", "daemon.ed25519"))
 	if err != nil {
 		return nil, err
 	}
-	c := &coreRuntime{
-		home: home, ledger: ledger, codec: app.NewCodec(),
+	ledger, err := sqlite.Open(filepath.Join(home, "ledger.db"), key)
+	if err != nil {
+		return nil, err
+	}
+	// the team cache keeps the server's copies as they are (no re-signing)
+	cache, err := sqlite.Open(teamCachePath(home), nil)
+	if err != nil {
+		_ = ledger.Close()
+		return nil, err
+	}
+	c := &coreRuntime{key: key,
+		home: home, ledger: ledger, cache: cache, codec: app.NewCodec(),
 		scopes: app.NewScopeIndex(), constraints: app.NewConstraintIndex(), changes: app.NewChangeIndex(), anchors: app.NewAnchorIndex(),
 		sessions: app.NewSessionIndex(), decisions: app.NewDecisionIndex(), ids: ulid.New(),
 	}
 	if c.seq, err = app.Rebuild(ctx, ledger, c.codec, c.projectors()...); err != nil {
-		_ = ledger.Close()
+		c.close()
+		return nil, err
+	}
+	// team layer on top: streams this daemon never wrote locally (ADR 0015)
+	if c.cacheSeq, err = app.Rebuild(ctx, cache, c.codec, c.projectors()...); err != nil {
+		c.close()
 		return nil, err
 	}
 	c.pipeline = app.New(app.Options{
@@ -91,17 +111,33 @@ func (c *coreRuntime) catchUp(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if head.Seq <= c.seq {
-		return nil
-	}
-	seq, err := app.Replay(ctx, c.ledger, c.codec, c.seq, c.projectors()...)
-	if err == nil {
+	if head.Seq > c.seq {
+		seq, err := app.Replay(ctx, c.ledger, c.codec, c.seq, c.projectors()...)
+		if err != nil {
+			return err
+		}
 		c.seq = seq
 	}
-	return err
+	cacheHead, err := c.cache.Head(ctx)
+	if err != nil {
+		return err
+	}
+	if cacheHead.Seq > c.cacheSeq {
+		seq, err := app.Replay(ctx, c.cache, c.codec, c.cacheSeq, c.projectors()...)
+		if err != nil {
+			return err
+		}
+		c.cacheSeq = seq
+	}
+	return nil
 }
 
-func (c *coreRuntime) close() { _ = c.ledger.Close() }
+func (c *coreRuntime) close() {
+	_ = c.ledger.Close()
+	if c.cache != nil {
+		_ = c.cache.Close()
+	}
+}
 
 // headless adds a repository and the anchor resolver: used by commands that
 // run without the daemon (CI, `verify`, `anchor`, `constraint`).
@@ -115,8 +151,15 @@ type headless struct {
 }
 
 // localUser identifies the person this daemon runs for (the owner of every
-// agent actor it records).
+// agent actor it records): the server login once there is one (ADR 0015:
+// the server checks that pushed records are the pushing user's own), else
+// the OS user.
 func localUser() core.ID {
+	if home, err := resolveHome(); err == nil {
+		if cfg, err := loadServerConfig(home); err == nil && cfg.User != "" {
+			return core.ID(cfg.User)
+		}
+	}
 	if u, err := user.Current(); err == nil && u.Username != "" {
 		return core.ID(u.Username)
 	}
@@ -134,12 +177,14 @@ func openHeadless(ctx context.Context, repoDir string) (*headless, error) {
 		return nil, err
 	}
 	h := &headless{coreRuntime: c, repo: repo}
-	id, err := repo.UserEmail(ctx)
-	if err != nil {
-		if u, uerr := user.Current(); uerr == nil {
-			id = u.Username
-		} else {
-			id = "local"
+	// identity: the server login, else the git author, else the OS user
+	id := ""
+	if cfg, err := loadServerConfig(c.home); err == nil {
+		id = cfg.User
+	}
+	if id == "" {
+		if id, err = repo.UserEmail(ctx); err != nil || id == "" {
+			id = string(localUser())
 		}
 	}
 	h.actor = core.ActorRef{Kind: core.ActorHuman, ID: core.ID(id)}

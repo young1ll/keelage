@@ -3,7 +3,7 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 BIN     := bin
 
-.PHONY: all build test lint schema check-generated tidy clean dogfood-record dogfood-verify wasm
+.PHONY: all build test lint schema check-generated tidy clean dogfood-record dogfood-verify wasm pg-start pg-stop pg-reset test-pg
 
 all: lint test build
 
@@ -42,3 +42,13 @@ dogfood-verify: build
 # tree-sitter 런타임+문법을 wasm 하나로 (internal/adapter/treesitter/VERSION 참조).
 wasm:
 	./scripts/build-treesitter-wasm.sh
+
+# 서버 원장 테스트: 일회용 Postgres 16 (scripts/pg-test.sh). KEELAGE_TEST_PG 없으면 해당 테스트는 skip.
+pg-start:
+	./scripts/pg-test.sh start
+pg-stop:
+	./scripts/pg-test.sh stop
+pg-reset:
+	./scripts/pg-test.sh reset
+test-pg:
+	KEELAGE_TEST_PG="$$(./scripts/pg-test.sh start)" go test -race -count=1 ./internal/adapter/postgres/... ./cmd/...; ./scripts/pg-test.sh stop

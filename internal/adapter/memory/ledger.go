@@ -4,6 +4,7 @@ package memory
 
 import (
 	"context"
+	"strconv"
 	"sync"
 
 	"github.com/young1ll/keelage/internal/core"
@@ -17,15 +18,20 @@ type Ledger struct {
 	all     []core.Envelope
 	streams map[string][]int // stream -> indices into all
 	idem    map[string]int   // stream\x00idem -> index
+	origins map[string]int   // daemon\x00local_seq -> index
 	signer  port.Signer
 }
 
 // NewLedger returns an empty ledger. signer may be nil.
 func NewLedger(signer port.Signer) *Ledger {
-	return &Ledger{streams: map[string][]int{}, idem: map[string]int{}, signer: signer}
+	return &Ledger{streams: map[string][]int{}, idem: map[string]int{}, origins: map[string]int{}, signer: signer}
 }
 
 func idemKey(stream, idem string) string { return stream + "\x00" + idem }
+
+func originKey(daemon string, localSeq int64) string {
+	return daemon + "\x00" + strconv.FormatInt(localSeq, 10)
+}
 
 func clone(e core.Envelope) core.Envelope {
 	e.Body = append([]byte(nil), e.Body...)
@@ -35,6 +41,11 @@ func clone(e core.Envelope) core.Envelope {
 	e.PrevHash = append(core.Hash(nil), e.PrevHash...)
 	e.Hash = append(core.Hash(nil), e.Hash...)
 	e.Sig = append([]byte(nil), e.Sig...)
+	if e.Origin != nil {
+		o := *e.Origin
+		o.PrevHash = append(core.Hash(nil), o.PrevHash...)
+		e.Origin = &o
+	}
 	return e
 }
 
@@ -60,6 +71,14 @@ func (l *Ledger) Append(_ context.Context, stream string, expected int64, evs []
 		}
 		batch[k] = struct{}{}
 	}
+	for _, e := range evs {
+		if e.Origin == nil {
+			continue
+		}
+		if _, dup := l.origins[originKey(e.Origin.DaemonID, e.Origin.LocalSeq)]; dup {
+			return port.Range{}, port.ErrDuplicateOrigin
+		}
+	}
 	cur := int64(len(l.streams[stream]))
 	if expected != port.AnyVersion && expected != cur {
 		return port.Range{}, port.ErrVersionConflict
@@ -78,7 +97,7 @@ func (l *Ledger) Append(_ context.Context, stream string, expected int64, evs []
 		if err := e.Seal(prev); err != nil {
 			return port.Range{}, err
 		}
-		if l.signer != nil {
+		if l.signer != nil && len(e.Sig) == 0 {
 			sig, err := l.signer.Sign(e.Hash)
 			if err != nil {
 				return port.Range{}, err
@@ -94,6 +113,9 @@ func (l *Ledger) Append(_ context.Context, stream string, expected int64, evs []
 		l.streams[stream] = append(l.streams[stream], idx)
 		if e.Idem != "" {
 			l.idem[idemKey(stream, e.Idem)] = idx
+		}
+		if e.Origin != nil {
+			l.origins[originKey(e.Origin.DaemonID, e.Origin.LocalSeq)] = idx
 		}
 	}
 	r.ToVer = cur + int64(len(evs))
@@ -141,6 +163,17 @@ func (l *Ledger) Head(_ context.Context) (port.Head, error) {
 		return port.Head{}, nil
 	}
 	return port.Head{Seq: int64(n), Hash: append(core.Hash(nil), l.all[n-1].Hash...)}, nil
+}
+
+// FindOrigin implements port.OriginLedger.
+func (l *Ledger) FindOrigin(_ context.Context, daemonID string, localSeq int64) (int64, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	i, ok := l.origins[originKey(daemonID, localSeq)]
+	if !ok {
+		return 0, port.ErrNotFound
+	}
+	return l.all[i].Seq, nil
 }
 
 // Lookup implements port.Ledger.

@@ -6,13 +6,19 @@ info:
     keelage 팀 서버 API 초안(design-first, 손 작성). 12주 범위(implementation-plan-v0 §4.6)의
     표면만 선언하고 본문 스키마는 `spec/schema/*.json`(Go 구조체에서 생성)을 참조한다.
     구현은 10–12주차. 그 전까지 경로·의미는 바뀔 수 있으나 객체 스키마는 생성물이 원천이다.
+    10–11주차 구현(ADR 0015): `/auth/device/*`, `/me`, `/sync/register|push|pull`, `/gates`, `/gates/{id}/resolve`,
+    `/ledger/key|checkpoint|proof/*`. 인증은 `Authorization: Bearer kl_…`(`/healthz`·`/ledger/key`·`/auth/*` 제외).
 servers:
   - url: https://{host}
     variables:
       host:
         default: keelage.example.com
+security:
+  - bearer: []
 tags:
   - name: health
+  - name: auth
+    description: GitHub OAuth device flow를 서버가 대행한다. 서버는 단계 사이 상태를 두지 않는다.
   - name: gates
     description: 승인 브로커 — 에이전트가 행동 전에 묻고, 사람이 자기 채널에서 답하고, 답은 원장에 남는다 (spec §3.6a).
   - name: sync
@@ -39,7 +45,67 @@ paths:
                   name: { type: string }
                   version: { type: string }
 
+  /auth/device/start:
+    post:
+      tags: [auth]
+      security: []
+      operationId: deviceStart
+      summary: device 로그인 시작 — 제공자의 device_code·user_code·verification_uri를 그대로 돌려준다
+      responses:
+        "200": { description: 코드 }
+        "501": { description: 제공자 미설정 }
+  /auth/device/poll:
+    post:
+      tags: [auth]
+      security: []
+      operationId: devicePoll
+      summary: 승인 여부 확인 — 승인되면 org 멤버에게 사람 토큰 발급
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [org, device_code]
+              properties: { org: { type: string }, device_code: { type: string } }
+      responses:
+        "200":
+          description: "status: pending | slow_down | ok(token, user, org) | denied | expired"
+        "403": { description: org 멤버가 아님 }
+  /me:
+    get:
+      operationId: me
+      summary: 토큰의 principal (org, user, kind, owner)
+      responses:
+        "200": { description: principal }
+  /sync/register:
+    post:
+      tags: [sync]
+      operationId: syncRegister
+      summary: 데몬 id(키 지문)를 공개키·사용자에 묶는다. 같은 id에 다른 키는 409
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [daemon_id, public_key]
+              properties: { daemon_id: { type: string }, public_key: { type: string, description: "ed25519:<base64>" } }
+      responses:
+        "200": { description: 등록됨 }
+        "409": { description: 다른 키로 이미 등록됨 }
   /gates:
+    get:
+      tags: [gates]
+      operationId: listGates
+      parameters:
+        - { name: state, in: query, schema: { type: string, enum: [decided, open, resolved, expired] } }
+      responses:
+        "200":
+          description: gate 목록(최근 순)
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "schema/gate.json" } }
     post:
       tags: [gates]
       operationId: requestGate
@@ -103,7 +169,11 @@ paths:
       tags: [sync]
       operationId: syncPush
       summary: 데몬이 서명한 이벤트를 제안으로 올린다
-      description: 서버는 서명 검증 → `origin{daemon_id, local_seq}` 유니크로 중복 제거 → 커맨드 파이프라인 재검증 → 확정 또는 Rejected.
+      description: |
+        서버는 origin 중복 → 데몬 체인·서명 검증 → 공유 가능 스트림 → 행위자(push한 사용자 본인 또는 그가 소유한 에이전트)
+        → 코덱 디코드 → `expected = ver-1` append 순으로 검사한다(ADR 0015). 해시·서명 실패는 응답에만, 나머지 거부
+        (`not-shareable`·`unauthorized`·`unknown-event`·`version-conflict`·`duplicate-idem`)는 `rejected` 스트림의 Rejected 이벤트로도 남는다.
+        서버 사본은 다시 체인되지만 `meta_hash`·`body_hash`·데몬 `sig`와 `origin.prev_hash`를 보존하므로 데몬 서명을 다시 검증할 수 있다.
       requestBody:
         required: true
         content:
@@ -112,7 +182,7 @@ paths:
               type: object
               required: [daemon_id, events]
               properties:
-                daemon_id: { type: string }
+                daemon_id: { type: string, description: 등록된 데몬 id(키 지문) }
                 events:
                   type: array
                   items: { $ref: "schema/event.json" }
@@ -126,18 +196,21 @@ paths:
                 properties:
                   accepted:
                     type: array
-                    items: { type: object, properties: { local_seq: { type: integer }, seq: { type: integer } } }
+                    items: { type: object, properties: { local_seq: { type: integer }, seq: { type: integer }, duplicate: { type: boolean } } }
                   rejected:
                     type: array
-                    items: { type: object, properties: { local_seq: { type: integer }, reason: { type: string } } }
+                    items: { type: object, properties: { local_seq: { type: integer }, code: { type: string }, reason: { type: string } } }
+                  head: { type: integer, description: 서버 org 원장 헤드 seq }
+        "403": { description: 다른 사용자의 데몬 }
+        "404": { description: 등록되지 않은 데몬 }
   /sync/pull:
     get:
       tags: [sync]
       operationId: syncPull
-      summary: 팀·제품 층 제약·결정·소유 지도·닻 이력 이벤트 사본
+      summary: 팀 층 사본 — constraint·decision·scope·anchor 스트림 (gate·change·session 제외)
       parameters:
-        - { name: since, in: query, schema: { type: integer }, description: 서버 seq 커서 }
-        - { name: scopes, in: query, schema: { type: string }, description: 쉼표 구분 canonical scope keys }
+        - { name: since, in: query, schema: { type: integer }, description: 서버 seq 커서(마지막으로 훑은 seq) }
+        - { name: limit, in: query, schema: { type: integer }, description: 페이지 크기(기본·최대 500) }
       responses:
         "200":
           description: 이벤트
@@ -146,26 +219,45 @@ paths:
               schema:
                 type: object
                 properties:
-                  cursor: { type: integer }
+                  cursor: { type: integer, description: 다음 요청의 since }
                   events: { type: array, items: { $ref: "schema/event.json" } }
+                  more: { type: boolean }
 
+  /ledger/key:
+    get:
+      tags: [ledger]
+      security: []
+      operationId: ledgerKey
+      summary: 서버 체크포인트 공개키 (`keelage verify-proof --server-key`)
+      responses:
+        "200": { description: "{ public_key: ed25519:<base64> }" }
+  /ledger/checkpoint:
+    get:
+      tags: [ledger]
+      operationId: checkpoint
+      summary: 현재 헤드의 서명 체크포인트(없거나 뒤처졌으면 지금 서명)
+      responses:
+        "200": { description: "checkpoint {org, tree_size, root, at, sig, key_id}" }
   /ledger/proof/inclusion:
     get:
       tags: [ledger]
       operationId: inclusionProof
+      summary: seq(1부터)의 rfc6962 포함 증명 번들 — 헤드가 마지막 체크포인트를 지났으면 즉시 새 체크포인트를 서명한다
       parameters:
         - { name: seq, in: query, required: true, schema: { type: integer } }
       responses:
-        "200": { description: rfc6962 포함 증명 (10–11주차) }
+        "200": { description: "bundle {org, seq, leaf_index, leaf_hash, meta_hash, body_hash, tree_size, proof[], checkpoint}" }
+        "404": { description: 헤드 밖 }
   /ledger/proof/consistency:
     get:
       tags: [ledger]
       operationId: consistencyProof
+      summary: 두 체크포인트 크기 사이의 일관성 증명 번들
       parameters:
         - { name: from, in: query, required: true, schema: { type: integer } }
         - { name: to, in: query, required: true, schema: { type: integer } }
       responses:
-        "200": { description: rfc6962 일관성 증명 (10–11주차) }
+        "200": { description: "bundle {org, from, to, proof[]}" }
 
   /constraints:
     get:
@@ -211,6 +303,11 @@ paths:
         "400": { $ref: "#/components/responses/Rejected" }
 
 components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: "`keelage-server token create` 또는 device 로그인으로 발급된 `kl_…` 토큰. 서버는 sha256만 저장한다."
   responses:
     Rejected:
       description: 애그리게이트 규칙이 커맨드를 거부했다. 거부는 원장에 `Rejected` 이벤트로도 남는다.

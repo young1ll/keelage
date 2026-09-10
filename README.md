@@ -37,3 +37,19 @@ keelage inbox                # 판단할 Change · stale 닻 · 미검증 제약
 keelage history code://src/calc.ts#fee
 keelage sessions             # 턴 수·만진 파일·판단 후보 — 대화 원문은 어디에도 없다
 ```
+
+팀이 생기면 (10–11주차): 서버 하나, 데몬은 커밋·공유 시점에 push, 팀 층은 pull.
+
+```sh
+keelage-server org create acme --db postgres://…            # 셀프호스트: org 1개
+keelage-server member add acme alice --db …                  # GitHub login
+keelage-server serve --db … --key server.ed25519 --github-client-id …   # device 로그인; 없으면 --token만
+keelage-server token create acme cc-1 --kind agent --owner alice --db …  # 에이전트 토큰(책임자 = alice)
+
+keelage server login --url https://keelage.example.com --org acme       # 브라우저에서 코드 입력 → 토큰 저장, 데몬 키 등록
+keelage sync push                 # 제약·결정·scope·닻·Change·gate (개인 범위·미공유 세션 제외)
+keelage sync pull                 # 팀 층 사본 → ~/.keelage/cache/team.db, 투영에 반영
+keelage gate ask --scope 'org=|product=|team=core|repo=|path=|person=' --proposal refactor-billing --level L1   # 에이전트 토큰
+keelage gate resolve <id> --allow --reason "reviewed"                    # 사람 토큰
+keelage server proof --seq 1 | keelage verify-proof --server-key "$(keelage server key)"   # 오프라인 포함 증명
+```

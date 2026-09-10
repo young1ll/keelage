@@ -68,6 +68,30 @@ type Envelope struct {
 	// Idem is the command idempotency key, set on the first event of a
 	// command; the ledger enforces UNIQUE(stream, idem).
 	Idem string `json:"idem,omitempty"`
+	// Origin is where a synced record came from (daemon id + its local
+	// seq); the server ledger enforces UNIQUE(org, origin). Not hashed.
+	Origin *Origin `json:"origin,omitempty"`
+}
+
+// Origin identifies a record's source daemon and local position. PrevHash
+// is the daemon's chain hash before the record, so the daemon's signature
+// (over H(prev_hash || meta_hash || body_hash) in its own ledger) stays
+// verifiable from the server copy: the server re-chains the record but
+// keeps meta_hash, body_hash and the original signature.
+type Origin struct {
+	DaemonID string `json:"daemon_id"`
+	LocalSeq int64  `json:"local_seq"`
+	PrevHash Hash   `json:"prev_hash,omitempty"`
+}
+
+// OriginHash is the hash the source daemon signed: its chain hash for the
+// record, recomputed from the origin's prev_hash and the record's
+// meta/body hashes.
+func (e Envelope) OriginHash() Hash {
+	if e.Origin == nil {
+		return e.Hash
+	}
+	return sum(e.Origin.PrevHash, e.MetaHash, e.BodyHash)
 }
 
 type sealedMeta struct {
@@ -102,11 +126,15 @@ func (e *Envelope) metaHash() (Hash, error) {
 }
 
 // Seal computes BodyHash, MetaHash, PrevHash and Hash given the previous
-// chain hash (nil for genesis). Ledgers call it inside Append.
+// chain hash (nil for genesis). Ledgers call it inside Append. TS is
+// truncated to microseconds first: every ledger (SQLite text, Postgres
+// timestamptz) stores that precision, so a record hashes the same on the
+// daemon and on the server it is synced to.
 func (e *Envelope) Seal(prev Hash) error {
 	if e.Stream == "" || e.Kind == "" || e.Ver <= 0 {
 		return errors.New("envelope: stream, kind and ver are required")
 	}
+	e.TS = e.TS.UTC().Truncate(time.Microsecond)
 	e.BodyHash = sum(e.Body)
 	mh, err := e.metaHash()
 	if err != nil {

@@ -2,6 +2,7 @@ package port
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/young1ll/keelage/internal/core"
@@ -81,4 +82,47 @@ type Commits interface {
 	ChangedIn(ctx context.Context, sha string) ([]FileChange, error)
 	// Content returns the file at a commit; ok is false when it does not exist there.
 	Content(ctx context.Context, sha, path string) (content []byte, ok bool, err error)
+}
+
+// ErrUnauthenticated: no valid credential.
+var ErrUnauthenticated = errors.New("unauthenticated")
+
+// ErrForbidden: authenticated, but not allowed to do this.
+var ErrForbidden = errors.New("forbidden")
+
+// ErrDaemonKeyMismatch: a daemon id is already bound to another key.
+var ErrDaemonKeyMismatch = errors.New("daemon id is registered with a different key")
+
+// Principal is who a request acts as, after authentication.
+type Principal struct {
+	Org   string
+	User  string
+	Kind  string // human | agent | ci
+	Owner string // responsible human (== User for humans)
+}
+
+// Actor is the core actor reference for the principal.
+func (p Principal) Actor() core.ActorRef {
+	if p.Kind == "human" {
+		return core.ActorRef{Kind: core.ActorHuman, ID: core.ID(p.User)}
+	}
+	return core.ActorRef{Kind: core.ActorAgent, ID: core.ID(p.Kind + ":" + p.User), Owner: core.ID(p.Owner)}
+}
+
+// Authenticator resolves bearer tokens.
+type Authenticator interface {
+	Authenticate(ctx context.Context, token string) (Principal, error)
+}
+
+// DaemonRegistry maps a daemon id to its public key and registering user.
+type DaemonRegistry interface {
+	RegisterDaemon(ctx context.Context, org, id, publicKey, user string) error
+	DaemonKey(ctx context.Context, org, id string) (publicKey, user string, err error)
+}
+
+// OriginLedger is a ledger that can look up synced origins: the server seq
+// of the record from (daemon, local seq), or ErrNotFound.
+type OriginLedger interface {
+	Ledger
+	FindOrigin(ctx context.Context, daemonID string, localSeq int64) (int64, error)
 }

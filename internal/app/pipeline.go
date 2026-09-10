@@ -215,20 +215,8 @@ func (p *Pipeline) publish(ctx context.Context, envs []core.Envelope, events []c
 func (p *Pipeline) recordRejection(ctx context.Context, target string, actor core.ActorRef, cmd core.Command, now time.Time, rej error) error {
 	r, _ := core.AsRejection(rej)
 	ev := core.Rejected{Command: cmd.Kind(), Target: target, Code: r.Code, Reason: r.Reason, Actor: actor}
-	body, err := p.o.Codec.Encode(ev)
-	if err != nil {
+	if err := appendRejected(ctx, p.o.Ledger, p.o.Codec, p.o.Projectors, now, ev); err != nil {
 		return errors.Join(rej, err)
-	}
-	e := core.Envelope{
-		Kind: ev.Kind(), V: ev.Version(), TS: now, Actor: actor,
-		Meta: core.EventMeta{Refs: []string{target}}, Body: body,
-	}
-	if _, err := p.o.Ledger.Append(ctx, core.RejectedStream, port.AnyVersion, []core.Envelope{e}); err != nil {
-		return errors.Join(rej, fmt.Errorf("app: record rejection: %w", err))
-	}
-	written, err := p.o.Ledger.Read(ctx, core.RejectedStream, 0)
-	if err == nil && len(written) > 0 {
-		_ = p.publish(ctx, written[len(written)-1:], []core.Event{ev})
 	}
 	return rej
 }
