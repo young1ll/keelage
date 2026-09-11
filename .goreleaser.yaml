@@ -34,11 +34,16 @@ archives:
   - id: keelage
     ids: [keelage]
     name_template: "keelage_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    files: [README.md]
+    files: [LICENSE, README.md]
   - id: keelage-server
     ids: [keelage-server]
     name_template: "keelage-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    files: [README.md, deploy/docker/compose.yaml]
+    files:
+      - README.md
+      - LICENSING.md
+      - src: cmd/keelage-server/LICENSE.md
+        dst: LICENSE.md
+      - deploy/docker/compose.yaml
 
 checksum:
   name_template: checksums.txt

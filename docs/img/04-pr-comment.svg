@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="420" viewBox="0 0 760 420" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <rect width="760" height="420" fill="#ffffff"/>
+  <rect x="16" y="16" width="728" height="388" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+  <rect x="17" y="17" width="726" height="40" rx="6" fill="#f6f8fa"/>
+  <line x1="17" y1="57" x2="743" y2="57" stroke="#d0d7de"/>
+  <circle cx="40" cy="37" r="12" fill="#1f6feb"/><text x="40" y="41" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">k</text>
+  <text x="60" y="41" fill="#1f2328" font-weight="600">keelage <tspan fill="#59636e" font-weight="400">bot commented · 예시 (app.renderPR 형식)</tspan></text>
+  <text x="34" y="86" fill="#1f2328" font-size="18" font-weight="600">keelage · Change <tspan font-family="ui-monospace, Menlo, monospace" font-size="15" fill="#0550ae">01M271P1FWAFAYMKH4NERPSP8F</tspan></text>
+  <g font-size="13" fill="#1f2328">
+    <rect x="34" y="100" width="380" height="118" fill="none" stroke="#d0d7de"/>
+    <line x1="34" y1="124" x2="414" y2="124" stroke="#d0d7de"/><line x1="34" y1="148" x2="414" y2="148" stroke="#d0d7de"/><line x1="34" y1="172" x2="414" y2="172" stroke="#d0d7de"/><line x1="34" y1="196" x2="414" y2="196" stroke="#d0d7de"/>
+    <line x1="180" y1="100" x2="180" y2="218" stroke="#d0d7de"/>
+    <text x="44" y="117">kind</text><text x="190" y="117">realization (manual)</text>
+    <text x="44" y="141">state</text><text x="190" y="141" font-weight="600">proposed</text>
+    <text x="44" y="165">autonomy applied</text><text x="190" y="165">L0</text>
+    <text x="44" y="189">judgments</text><text x="190" y="189">0</text>
+    <text x="44" y="212">sessions</text><text x="190" y="212">1</text>
+  </g>
+  <text x="34" y="248" fill="#1f2328" font-weight="600">Constraints touched</text>
+  <text x="44" y="270" fill="#1f2328" font-size="13">• <tspan font-family="ui-monospace, Menlo, monospace" fill="#0550ae">01M271NYJ88B…</tspan> rule [verified] — no retries in billing</text>
+  <text x="44" y="290" fill="#1f2328" font-size="13">• <tspan font-family="ui-monospace, Menlo, monospace" fill="#0550ae">01M271NYH16A…</tspan> rule [verified] — # billing</text>
+  <text x="34" y="320" fill="#1f2328" font-weight="600">Anchors</text>
+  <text x="44" y="342" fill="#1f2328" font-size="13">• <tspan font-family="ui-monospace, Menlo, monospace" fill="#0550ae">code://src/calc.ts#fee</tspan> [review]</text>
+  <text x="34" y="372" fill="#59636e" font-size="13" font-style="italic">Judgment pending: an approving or changes-requested review with a reason is recorded as the judgment.</text>
+  <rect x="34" y="384" width="12" height="12" rx="6" fill="#9a6700"/><text x="52" y="395" fill="#1f2328" font-size="12">check <tspan font-family="ui-monospace, Menlo, monospace">keelage</tspan> — neutral · judgment pending</text>
+</svg>

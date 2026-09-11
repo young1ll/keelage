@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="956" height="551" viewBox="0 0 956 551" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+<rect width="956" height="551" rx="10" fill="#1e1f29"/>
+<rect width="956" height="32" rx="10" fill="#2b2c3b"/>
+<circle cx="18" cy="16" r="6" fill="#ff5f56"/><circle cx="38" cy="16" r="6" fill="#ffbd2e"/><circle cx="58" cy="16" r="6" fill="#27c93f"/>
+<text x="478" y="21" text-anchor="middle" fill="#c8c8d0" font-size="12">편집 직전 주입과 거부 — Claude Code 훅이 받는 답 (실제 출력)</text>
+<text x="18" y="58" xml:space="preserve"><tspan fill="#8be9fd">$ keelage hook claude-code PreToolUse &lt; edit-calc.json </tspan><tspan fill="#6272a4">   # Claude Code가 src/calc.ts를 편집하기 직전: 훅이 돌려주는 답</tspan></text>
+<text x="18" y="77" fill="#f8f8f2" xml:space="preserve">{</text>
+<text x="18" y="96" fill="#ffb86c" xml:space="preserve">  &quot;systemMessage&quot;: &quot;keelage: anchor code://src/calc.ts#fee is under review: its body changed since the bound</text>
+<text x="18" y="115" fill="#f8f8f2" xml:space="preserve">    constraints were verified&quot;,</text>
+<text x="18" y="134" fill="#f8f8f2" xml:space="preserve">  &quot;hookSpecificOutput&quot;: {</text>
+<text x="18" y="153" fill="#f8f8f2" xml:space="preserve">    &quot;hookEventName&quot;: &quot;PreToolUse&quot;,</text>
+<text x="18" y="172" fill="#ffb86c" xml:space="preserve">    &quot;additionalContext&quot;: &quot;keelage · src/calc.ts:\n- anchor code://src/calc.ts#fee is review\n- rule (verified, repo</text>
+<text x="18" y="191" fill="#f8f8f2" xml:space="preserve">    repo): # billing\n\n- Never retry a failed charge automatically. — imported from CLAUDE.md\n- rule (verified,</text>
+<text x="18" y="210" fill="#ffb86c" xml:space="preserve">    repo:src/**): no retries in billing\nkeelage warnings:\n- anchor code://src/calc.ts#fee is under review: its body</text>
+<text x="18" y="229" fill="#f8f8f2" xml:space="preserve">    changed since the bound constraints were verified&quot;</text>
+<text x="18" y="248" fill="#f8f8f2" xml:space="preserve">  }</text>
+<text x="18" y="267" fill="#f8f8f2" xml:space="preserve">}</text>
+<text x="18" y="286" fill="#f8f8f2" xml:space="preserve"></text>
+<text x="18" y="305" fill="#8be9fd" xml:space="preserve">$ keelage hook claude-code PreToolUse &lt; write-vault.json  # src/vault/keys.ts 쓰기 시도 → 거부</text>
+<text x="18" y="324" fill="#f8f8f2" xml:space="preserve">{</text>
+<text x="18" y="343" fill="#f8f8f2" xml:space="preserve">  &quot;hookSpecificOutput&quot;: {</text>
+<text x="18" y="362" fill="#f8f8f2" xml:space="preserve">    &quot;hookEventName&quot;: &quot;PreToolUse&quot;,</text>
+<text x="18" y="381" fill="#ffb86c" xml:space="preserve">    &quot;permissionDecision&quot;: &quot;deny&quot;,</text>
+<text x="18" y="400" fill="#f8f8f2" xml:space="preserve">    &quot;permissionDecisionReason&quot;: &quot;keelage: vault code is edited by humans (autonomy L0 in repo:src/vault/* denies agent</text>
+<text x="18" y="419" fill="#f8f8f2" xml:space="preserve">    edits to src/vault/keys.ts; a human edits or raises the level)&quot;,</text>
+<text x="18" y="438" fill="#f8f8f2" xml:space="preserve">    &quot;additionalContext&quot;: &quot;keelage · src/vault/keys.ts:\n- rule (verified, repo repo): # billing\n\n- Never retry a</text>
+<text x="18" y="457" fill="#f8f8f2" xml:space="preserve">    failed charge automatically. — imported from CLAUDE.md\n- rule (verified, repo:src/**): no retries in billing\n-</text>
+<text x="18" y="476" fill="#f8f8f2" xml:space="preserve">    autonomy (verified, repo:src/vault/*): vault code is edited by humans&quot;</text>
+<text x="18" y="495" fill="#f8f8f2" xml:space="preserve">  }</text>
+<text x="18" y="514" fill="#f8f8f2" xml:space="preserve">}</text>
+</svg>

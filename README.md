@@ -12,12 +12,25 @@
 
 12주 목표(한 문장): Claude Code를 쓰는 개인이 설치하면 편집 전에 자기 제약이 주입되고, 하루 작업이 Change·판단으로 남으며, 팀이 생기면 서버로 제약을 공유한다.
 
+## 실행법 — 개인은 서버 없이, 팀만 서버
+
+| 경로 | 필요한 것 | 명령 |
+|------|-----------|------|
+| **개인** (Claude Code에 제약 주입, Change·판단 기록) | `keelage` 바이너리 하나 | 설치 → `keelage setup` 한 번 → `keelage daemon &` → 리포에서 `keelage init` |
+| **팀** (제약 공유, 승인 브로커, PR 코멘트) | 위 + `keelage-server` + Postgres | `keelage-server serve` (또는 `deploy/docker/compose.yaml`) → `keelage server login` → `sync push/pull` |
+
+Docker compose는 팀 서버를 띄울 때만 쓴다. 개인 경로에는 Docker도 서버도 없다. 데몬은 한 번 띄워 두면 되고(v0는 수동 시작; systemd·launchd 유닛 안내), 데몬이 꺼져 있어도 편집은 막히지 않는다(fail-open).
+
 ## 설치
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/young1ll/keelage/main/scripts/install.sh | sh   # 최신 릴리스, 체크섬 + cosign(있으면) 검증
-# 또는 소스에서
-make build && export PATH=$PWD/bin:$PATH
+# 릴리스 전(지금): Go 1.25.13+ 로 소스에서
+go install github.com/young1ll/keelage/cmd/keelage@main          # 개인 경로에는 이것만
+go install github.com/young1ll/keelage/cmd/keelage-server@main   # 팀 서버(선택)
+# 또는 git clone … && make build && export PATH=$PWD/bin:$PATH
+
+# 첫 릴리스(v0.1.0 태그) 뒤: 체크섬 + cosign(있으면) 검증
+curl -fsSL https://raw.githubusercontent.com/young1ll/keelage/main/scripts/install.sh | sh
 ```
 
 릴리스는 `v*` 태그마다 goreleaser가 만든다: macOS/Linux 바이너리, `checksums.txt`, SBOM, sigstore keyless 서명(`checksums.txt.sigstore.json`), `ghcr.io/young1ll/keelage-server` 이미지 (ADR 0016).
@@ -34,8 +47,12 @@ keelage status                                     # 데몬·훅·MCP·사이드
 keelage uninstall                                  # 전부 되돌림 — 사용자 파일은 바이트 동일, 원장은 남김(--purge로 삭제)
 ```
 
+![setup → init → constraint](docs/img/01-setup-init.svg)
+
 이후 Claude Code가 `src/calc.ts`를 편집하기 직전에 제약·닻 상태가 컨텍스트로 주입되고, `src/vault/*` 편집은 거부된다.
-데몬이 없거나 50ms를 넘기면 훅은 아무것도 하지 않는다(fail-open).
+데몬이 없거나 50ms를 넘기면 훅은 아무것도 하지 않는다(fail-open). 아래는 훅이 Claude Code에 실제로 돌려주는 답이다(`additionalContext`가 편집 전 컨텍스트, `permissionDecision: deny`가 거부):
+
+![편집 직전 주입과 거부](docs/img/02-hook-inject-deny.svg)
 
 하루 작업이 남는 곳 (8주차):
 
@@ -46,6 +63,8 @@ keelage inbox                # 판단할 Change · stale 닻 · 미검증 제약
 keelage history code://src/calc.ts#fee
 keelage sessions             # 턴 수·만진 파일·판단 후보 — 대화 원문은 어디에도 없다
 ```
+
+![커밋 → Change · inbox · history](docs/img/03-change-inbox-history.svg)
 
 팀이 생기면 (10–11주차): 서버 하나, 데몬은 커밋·공유 시점에 push, 팀 층은 pull.
 
@@ -63,6 +82,14 @@ keelage gate resolve <id> --allow --reason "reviewed"                    # 사�
 keelage server proof --seq 1 | keelage verify-proof --server-key "$(keelage server key)"   # 오프라인 포함 증명
 ```
 
-셀프호스트는 `deploy/docker/compose.yaml`(서버 + Postgres). GitHub App을 붙이면(`serve --github-app-id --github-app-key --github-webhook-secret`) PR마다 head 커밋의 Change(닿은 제약·닻·판단 상태)가 코멘트와 `keelage` 체크로 보이고, 이유가 있는 승인/변경 요청 리뷰는 그 Change의 판단으로 원장에 남는다. 서버는 리포를 클론하지 않는다 — 데몬이 `sync push`한 만큼만 보인다.
+셀프호스트는 `deploy/docker/compose.yaml`(서버 + Postgres; 릴리스 이미지가 없을 때는 `keelage-server serve --db postgres://…`와 아무 Postgres 16). GitHub App을 붙이면(`serve --github-app-id --github-app-key --github-webhook-secret`) PR마다 head 커밋의 Change(닿은 제약·닻·판단 상태)가 코멘트와 `keelage` 체크로 보이고, 이유가 있는 승인/변경 요청 리뷰는 그 Change의 판단으로 원장에 남는다. 서버는 리포를 클론하지 않는다 — 데몬이 `sync push`한 만큼만 보인다.
 
-외부 사용자 확인 절차·기록표: `docs/metrics/external-users.md`.
+![PR 코멘트와 체크](docs/img/04-pr-comment.svg)
+
+위 그림들은 이 리포의 CLI와 훅 시뮬레이터의 **실제 출력**을 SVG로 옮긴 것이고(`docs/img/`), PR 코멘트만 `app.renderPR` 형식의 예시다. Claude Code 화면 캡처는 사람 검증 때 추가한다.
+
+사람 검증 런북: `docs/verification-runbook.md` · 외부 사용자 확인 절차·기록표: `docs/metrics/external-users.md`.
+
+## 라이선스
+
+`keelage`(데몬·CLI·core·어댑터)는 Apache-2.0, `keelage-server`(서버 바이너리·서버 전용 어댑터·배포 파일)는 FSL-1.1-Apache-2.0(각 버전은 2년 뒤 Apache-2.0). 범위는 `LICENSING.md`.

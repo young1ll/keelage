@@ -5,8 +5,8 @@
 ## 절차 (사용자에게 그대로 보내는 스크립트)
 
 ```sh
-# 1. 설치 (macOS/Linux; cosign이 있으면 서명까지 검증)
-curl -fsSL https://raw.githubusercontent.com/young1ll/keelage/main/scripts/install.sh | sh
+# 1. 설치 (릴리스 전: Go 1.25.13+로 소스에서; 릴리스 뒤에는 install.sh)
+go install github.com/young1ll/keelage/cmd/keelage@main      # 또는 curl -fsSL https://raw.githubusercontent.com/young1ll/keelage/main/scripts/install.sh | sh
 keelage version
 
 # 2. 전역 설정 — 항목별 y/N. 원본은 ~/.keelage/backup/에 남는다
@@ -27,7 +27,7 @@ keelage uninstall
 
 | # | 항목 | 기대 | 확인 방법 |
 |---|------|------|-----------|
-| 1 | 설치 | 1분 내 `keelage version` 출력 | install.sh 출력 (checksum ok / signature verified) |
+| 1 | 설치 | 2분 내 `keelage version` 출력 | `go install` 성공 (릴리스 뒤: install.sh의 checksum ok / signature verified) |
 | 2 | setup | `~/.claude/settings.json`에 우리 훅만 추가, 백업 존재 | `keelage status` |
 | 3 | 훅 주입 | 편집 직전 제약 문단이 Claude Code에 보임 | 사용자 스크린샷 또는 `KEELAGE_DEBUG=1` |
 | 4 | fail-open | 데몬을 끈 상태에서 편집이 막히지 않음 | `pkill keelage; ` 편집 |
