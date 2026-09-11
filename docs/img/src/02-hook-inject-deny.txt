@@ -1,0 +1,18 @@
+$ keelage hook claude-code PreToolUse < edit-calc.json    # Claude Code가 src/calc.ts를 편집하기 직전: 훅이 돌려주는 답
+{
+  "systemMessage": "keelage: anchor code://src/calc.ts#fee is under review: its body changed since the bound constraints were verified",
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "additionalContext": "keelage · src/calc.ts:\n- anchor code://src/calc.ts#fee is review\n- rule (verified, repo repo): # billing\n\n- Never retry a failed charge automatically. — imported from CLAUDE.md\n- rule (verified, repo:src/**): no retries in billing\nkeelage warnings:\n- anchor code://src/calc.ts#fee is under review: its body changed since the bound constraints were verified"
+  }
+}
+
+$ keelage hook claude-code PreToolUse < write-vault.json  # src/vault/keys.ts 쓰기 시도 → 거부
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "keelage: vault code is edited by humans (autonomy L0 in repo:src/vault/* denies agent edits to src/vault/keys.ts; a human edits or raises the level)",
+    "additionalContext": "keelage · src/vault/keys.ts:\n- rule (verified, repo repo): # billing\n\n- Never retry a failed charge automatically. — imported from CLAUDE.md\n- rule (verified, repo:src/**): no retries in billing\n- autonomy (verified, repo:src/vault/*): vault code is edited by humans"
+  }
+}

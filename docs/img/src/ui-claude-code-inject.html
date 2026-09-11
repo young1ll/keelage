@@ -1,0 +1,37 @@
+<!doctype html><meta charset="utf-8">
+<style>
+body{margin:0;background:#0b0c10;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;color:#d7d7db}
+.win{width:900px;background:#101116;border-radius:10px;overflow:hidden;border:1px solid #2a2b33}
+.bar{height:32px;background:#1b1c23;display:flex;align-items:center;padding:0 12px;gap:8px;color:#8b8c96;font-size:12px}
+.dot{width:12px;height:12px;border-radius:50%}
+.body{padding:18px 22px;line-height:1.55}
+.muted{color:#6c6d78}.acc{color:#d97757}.user{color:#f0f0f4}.ok{color:#7fd88f}.warn{color:#e5c07b}.err{color:#ef6b6b}.tool{color:#7aa2f7}
+.box{border-left:2px solid #2f3140;margin:8px 0 8px 10px;padding:2px 12px;color:#b3b4bf}
+.diff-add{color:#7fd88f}.diff-del{color:#ef6b6b}
+.prompt{margin-top:14px;border-top:1px solid #23242c;padding-top:10px;color:#8b8c96}
+.kbd{background:#1b1c23;border:1px solid #2a2b33;border-radius:4px;padding:0 5px;color:#b3b4bf}
+</style>
+<div class="win">
+ <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span style="margin-left:auto">claude — ~/work/repo</span></div>
+ <div class="body">
+  <div class="muted" style="border:1px solid #2f3140;border-radius:6px;padding:6px 12px;display:inline-block"><span class="acc">✻</span> Welcome to Claude Code · keelage hooks active (<span class="ok">daemon ok</span>, 50 ms budget)</div>
+  <div style="margin-top:12px"><span class="muted">&gt;</span> <span class="user">add a cap parameter to fee</span></div>
+  <div style="margin-top:10px"><span class="acc">●</span> I'll cap the fee at the new parameter. Let me look at <span class="tool">src/calc.ts</span> first.</div>
+  <div><span class="ok">●</span> <span class="tool">Read</span>(src/calc.ts)</div>
+  <div class="box">Read 7 lines</div>
+  <div><span class="ok">●</span> <span class="tool">Edit</span>(src/calc.ts)</div>
+  <div class="box"><span class="warn">⚠ keelage: anchor code://src/calc.ts#fee is under review: its body changed since the bound constraints were verified</span></div>
+  <div class="box"><span class="muted">context injected before the edit (PreToolUse · additionalContext, seen by the model):</span><br>
+   keelage · src/calc.ts:<br>
+   - anchor code://src/calc.ts#fee is review<br>
+   - rule (verified, repo repo): # billing — Never retry a failed charge automatically. — imported from CLAUDE.md<br>
+   - rule (verified, repo:src/**): no retries in billing</div>
+  <div class="box">
+   <span class="muted">  2 </span>export function fee(amount: number, rate: number<span class="diff-add">, cap: number</span>): number {<br>
+   <span class="muted">  3 </span><span class="diff-del">-  return amount * rate;</span><br>
+   <span class="muted">  3 </span><span class="diff-add">+  return Math.min(amount * rate, cap);</span><br>
+   <span class="muted">  4 </span>}</div>
+  <div><span class="acc">●</span> Done. I kept the billing rule in mind: no retry logic was added, only a cap. The anchor <span class="tool">code://src/calc.ts#fee</span> is marked <span class="warn">review</span> — run <span class="kbd">keelage inbox</span> after committing.</div>
+  <div class="prompt">&gt; <span class="muted">Try "keelage inbox" in a terminal · ? for shortcuts</span></div>
+ </div>
+</div>

@@ -1,0 +1,50 @@
+<!doctype html><meta charset="utf-8">
+<style>
+body{margin:0;background:#f6f8fa;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:14px;color:#1f2328}
+.page{width:920px;background:#fff;border:1px solid #d0d7de;border-radius:8px;overflow:hidden}
+.top{padding:16px 24px;border-bottom:1px solid #d0d7de;background:#fff}
+h1{font-size:22px;font-weight:400;margin:0}h1 .n{color:#59636e}
+.badge{display:inline-block;background:#1a7f37;color:#fff;border-radius:999px;padding:3px 10px;font-weight:600;font-size:13px;margin-right:8px}
+.meta{color:#59636e;margin-top:8px}
+.tabs{padding:0 24px;border-bottom:1px solid #d0d7de;background:#f6f8fa;display:flex;gap:18px;font-size:14px}
+.tabs div{padding:10px 4px;color:#59636e}.tabs .on{color:#1f2328;border-bottom:2px solid #fd8c73;font-weight:600}
+.tl{padding:20px 24px 8px 24px}
+.c{border:1px solid #d0d7de;border-radius:6px;margin:0 0 16px 40px;position:relative}
+.c .h{background:#f6f8fa;border-bottom:1px solid #d0d7de;padding:9px 16px;color:#59636e}.c .h b{color:#1f2328}
+.c .b{padding:14px 16px;line-height:1.5}
+.av{position:absolute;left:-40px;top:6px;width:28px;height:28px;border-radius:50%;background:#1f6feb;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.av2{background:#6e40c9}
+table{border-collapse:collapse;margin:10px 0}td{border:1px solid #d0d7de;padding:5px 12px}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:#eff1f3;padding:1px 5px;border-radius:4px}
+.ev{margin:6px 0 14px 12px;color:#59636e;display:flex;align-items:center;gap:8px}
+.ev .i{width:20px;height:20px;border-radius:50%;background:#1a7f37;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+.checks{margin:8px 24px 24px 24px;border:1px solid #d0d7de;border-radius:6px}
+.checks .r{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid #d0d7de}
+.checks .r:first-child{border-top:0;background:#f6f8fa;font-weight:600}
+.dot{width:16px;height:16px;border-radius:50%;display:inline-block}
+.g{background:#1a7f37}.y{background:#9a6700}.gr{color:#59636e;font-weight:400;margin-left:auto}
+</style>
+<div class="page">
+ <div class="top"><h1>Cap fee at the new parameter <span class="n">#14</span></h1>
+  <div class="meta"><span class="badge">Open</span> alice wants to merge 1 commit into <code>main</code> from <code>cap-fee</code></div></div>
+ <div class="tabs"><div class="on">Conversation 2</div><div>Commits 1</div><div>Checks 4</div><div>Files changed 1</div></div>
+ <div class="tl">
+  <div class="c"><div class="av">k</div><div class="h"><b>keelage</b> bot commented 2 minutes ago</div>
+   <div class="b"><div style="font-size:16px;font-weight:600;margin-bottom:4px">keelage · Change <code>01M271P1FWAFAYMKH4NERPSP8F</code></div>
+    <table><tr><td>kind</td><td>realization (manual)</td></tr><tr><td>state</td><td><b>judged</b></td></tr><tr><td>autonomy applied</td><td>L0</td></tr><tr><td>judgments</td><td>1</td></tr><tr><td>sessions</td><td>1</td></tr></table>
+    <b>Constraints touched</b><ul style="margin:6px 0 10px 0"><li><code>01M271NYJ88B1ECNMHM03P3DJT</code> rule [verified] — no retries in billing</li><li><code>01M271NYH16AWG1V24E5GGPACY</code> rule [verified] — # billing</li></ul>
+    <b>Anchors</b><ul style="margin:6px 0 0 0"><li><code>code://src/calc.ts#fee</code> [review]</li></ul>
+   </div></div>
+  <div class="ev"><span class="i">✓</span> <b>bob</b> approved these changes 1 minute ago</div>
+  <div class="c"><div class="av av2">b</div><div class="h"><b>bob</b> left a review · <span style="color:#1a7f37;font-weight:600">Approved</span></div>
+   <div class="b">The cap keeps the billing rule intact (no retry path added). Anchor <code>fee</code> body change is expected.</div></div>
+  <div class="ev" style="margin-top:-6px"><span class="i" style="background:#0969da">k</span> keelage recorded the review as a judgment (<code>Judged · source=review · by=bob</code>) and refreshed the comment and check</div>
+ </div>
+ <div class="checks">
+  <div class="r"><span class="dot g"></span> All checks have passed <span class="gr">4 successful checks</span></div>
+  <div class="r"><span class="dot g"></span> <b>keelage</b> <span class="gr">judged · 01M271P1FWAFAYMKH4NERPSP8F</span></div>
+  <div class="r"><span class="dot g"></span> ci / lint <span class="gr">Successful in 43s</span></div>
+  <div class="r"><span class="dot g"></span> ci / test <span class="gr">Successful in 1m 50s</span></div>
+  <div class="r"><span class="dot g"></span> ci / vuln <span class="gr">Successful in 36s</span></div>
+ </div>
+</div>

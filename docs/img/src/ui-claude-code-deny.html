@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8">
+<style>
+body{margin:0;background:#0b0c10;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;color:#d7d7db}
+.win{width:900px;background:#101116;border-radius:10px;overflow:hidden;border:1px solid #2a2b33}
+.bar{height:32px;background:#1b1c23;display:flex;align-items:center;padding:0 12px;gap:8px;color:#8b8c96;font-size:12px}
+.dot{width:12px;height:12px;border-radius:50%}
+.body{padding:18px 22px;line-height:1.55}
+.muted{color:#6c6d78}.acc{color:#d97757}.user{color:#f0f0f4}.ok{color:#7fd88f}.warn{color:#e5c07b}.err{color:#ef6b6b}.tool{color:#7aa2f7}
+.box{border-left:2px solid #2f3140;margin:8px 0 8px 10px;padding:2px 12px;color:#b3b4bf}
+.deny{border-left-color:#ef6b6b}
+.prompt{margin-top:14px;border-top:1px solid #23242c;padding-top:10px;color:#8b8c96}
+</style>
+<div class="win">
+ <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span style="margin-left:auto">claude — ~/work/repo</span></div>
+ <div class="body">
+  <div><span class="muted">&gt;</span> <span class="user">rotate the API key in src/vault/keys.ts</span></div>
+  <div style="margin-top:10px"><span class="acc">●</span> I'll write the new key constant into <span class="tool">src/vault/keys.ts</span>.</div>
+  <div><span class="err">●</span> <span class="tool">Write</span>(src/vault/keys.ts)</div>
+  <div class="box deny"><span class="err">✗ PreToolUse hook denied the tool call</span><br>
+   keelage: vault code is edited by humans (autonomy L0 in repo:src/vault/* denies agent edits to src/vault/keys.ts; a human edits or raises the level)</div>
+  <div class="box"><span class="muted">context (additionalContext):</span><br>
+   keelage · src/vault/keys.ts:<br>
+   - rule (verified, repo repo): # billing — Never retry a failed charge automatically. — imported from CLAUDE.md<br>
+   - rule (verified, repo:src/**): no retries in billing<br>
+   - autonomy (verified, repo:src/vault/*): vault code is edited by humans</div>
+  <div><span class="acc">●</span> I can't change files under <span class="tool">src/vault/</span>: keelage marks that scope as human-only (autonomy L0). Here is the exact edit for you to apply, or raise the scope's level with <span class="tool">keelage constraint</span> if agents should own it.</div>
+  <div class="prompt">&gt; <span class="muted">If the daemon is down or slow (&gt;50 ms), hooks stay silent and edits proceed — fail-open</span></div>
+ </div>
+</div>
