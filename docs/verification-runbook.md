@@ -6,16 +6,16 @@
 
 | # | 할 일 | 어디서 | 결과 |
 |---|------|--------|------|
-| 0.1 | LICENSE 결정·추가 | 리포 루트 | 계획서 §1: `keelage` Apache-2.0, 서버는 FSL/BSL 계열. `.goreleaser.yaml` `archives.files`에 `LICENSE*`를 다시 넣는다 |
-| 0.2 | **릴리스 태그** | 로컬 | `git tag -a v0.1.0 -m "v0.1.0" && git push origin v0.1.0` → `release.yml`이 바이너리·checksums·SBOM·cosign 번들·`ghcr.io/young1ll/keelage-server` 이미지를 만든다. Actions 탭에서 초록 확인. 먼저 `v0.1.0-rc.1`로 리허설해도 된다(`release.prerelease: auto`라 프리릴리스로 표시되고 `install.sh`의 latest·ghcr `latest`에는 잡히지 않는다; 설치는 `KEELAGE_VERSION=v0.1.0-rc.1`) |
+| 0.1 | LICENSE | 리포 루트 | 완료: `LICENSE`(Apache-2.0) + `cmd/keelage-server/LICENSE.md`(FSL-1.1-Apache-2.0), 범위는 `LICENSING.md` |
+| 0.2 | 릴리스 태그 — **이번 검증에서는 만들지 않는다** | — | 설치는 소스에서: `go install github.com/young1ll/keelage/cmd/keelage@main` 또는 `git clone … && make build`. 서버 이미지도 없으므로 §0.5는 `docker compose`가 아니라 `make build && bin/keelage-server serve …`(Postgres는 로컬 또는 `docker run postgres:16`). 태그를 밀 때가 오면 `git tag -a v0.1.0 -m v0.1.0 && git push origin v0.1.0`로 `release.yml`이 전부 만든다(`v0.1.0-rc.1`은 프리릴리스로 표시) |
 | 0.3 | GitHub **OAuth app** (device 로그인) | github.com → Settings → Developer settings → OAuth Apps | "Enable Device Flow" 체크. Client ID를 `KEELAGE_GITHUB_CLIENT_ID`로 |
 | 0.4 | GitHub **App** (PR 코멘트·체크) | Developer settings → GitHub Apps | 권한: Contents read · Pull requests write · Checks write · Metadata read. 이벤트: Installation, Pull request, Pull request review. Webhook URL `https://<server>/webhooks/github`, secret 생성. App ID·secret을 `KEELAGE_GITHUB_APP_ID`·`KEELAGE_GITHUB_WEBHOOK_SECRET`로, private key(PEM)는 `deploy/docker/secrets/app.pem`에 두고 `KEELAGE_GITHUB_APP_KEY=/secrets/app.pem`(컨테이너 안 경로; compose가 `./secrets`를 `/secrets`로 읽기 전용 마운트) |
-| 0.5 | 서버 기동 | 아무 Docker 호스트 | `cd deploy/docker && KEELAGE_VERSION=v0.1.0 docker compose up -d` (위 env를 `.env`에). 공개 URL이 필요하면 임시로 `cloudflared tunnel --url http://localhost:8080` 등 |
-| 0.6 | org·멤버 | 서버 컨테이너 | `docker compose exec server /keelage-server org create <org>` · `member add <org> <github-login>` (검증자 본인 + 외부 3명) · `key`(공개키 메모) |
+| 0.5 | 서버 기동 (팀 경로·GitHub App 경로에만 필요; 개인 경로 §1은 서버 없이 끝난다) | 노트북 | 릴리스 없이: `docker run -d --name kl-pg -e POSTGRES_USER=keelage -e POSTGRES_PASSWORD=keelage -e POSTGRES_DB=keelage -p 5432:5432 postgres:16-alpine` 뒤 `export KEELAGE_DB='postgres://keelage:keelage@localhost:5432/keelage?sslmode=disable'` · `bin/keelage-server serve --key server.ed25519 [--github-client-id …] [--github-app-id … --github-app-key ./secrets/app.pem --github-webhook-secret …]`. 릴리스 뒤에는 `deploy/docker/compose.yaml`. 공개 URL이 필요하면 임시로 `cloudflared tunnel --url http://localhost:8080` 등 |
+| 0.6 | org·멤버 | 같은 셸 | `bin/keelage-server org create <org>` · `member add <org> <github-login>` (검증자 본인 + 외부 3명) · `key`(공개키 메모) |
 
 ## 1. 개인 경로 (외부 사용자 3명 — `docs/metrics/external-users.md`)
 
-절차·7개 확인 항목·기록표는 그 문서에 있다. 핵심 3개: **훅 주입**(편집 직전 제약이 보임) · **fail-open**(데몬 없이 편집이 막히지 않음) · **원상 복원**(`uninstall` 뒤 파일 바이트 동일). 설치는 `curl -fsSL https://raw.githubusercontent.com/young1ll/keelage/main/scripts/install.sh | sh`.
+절차·7개 확인 항목·기록표는 그 문서에 있다. 핵심 3개: **훅 주입**(편집 직전 제약이 보임) · **fail-open**(데몬 없이 편집이 막히지 않음) · **원상 복원**(`uninstall` 뒤 파일 바이트 동일). 설치는 릴리스 전이므로 `go install github.com/young1ll/keelage/cmd/keelage@main`(Go 1.25.13+). 서버는 필요 없다.
 
 ## 2. 팀 경로 (검증자 본인 + 1명, 10–11주차 완료 기준)
 
@@ -46,7 +46,7 @@ keelage gate list --state resolved
 3. 기대: PR에 `keelage` 코멘트(Change id·닿은 제약·닻·판단 상태)와 `keelage` 체크(`neutral`: 판단 대기).
 4. 이유를 적은 Approve → 코멘트가 갱신되고 체크가 `success`, `keelage history`/서버 원장에 `Judged`(source=review, by=리뷰어 login). 이유 없는 Approve는 코멘트에 "needs a reason"이 붙고 원장에 `Rejected(no-reason)`.
 
-## 4. 릴리스 검증 (0.2 뒤)
+## 4. 릴리스 검증 (태그를 민 뒤에만)
 
 ```sh
 cosign verify-blob checksums.txt --bundle checksums.txt.sigstore.json \
