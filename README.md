@@ -26,7 +26,7 @@
 
 ![GitHub PR — keelage 코멘트·체크](docs/img/ui-github-pr.png)
 
-> 세 장은 이 리포의 훅 시뮬레이터·원장이 낸 **실제 문자열**(경고문, 주입 문단, 거부 사유, Change id·제약 id)로 Claude Code와 GitHub 화면을 재현한 것이다(`docs/img/`). Claude Code 자체의 스크린샷은 사람 검증 때 교체한다.
+> 세 장은 이 리포의 훅 시뮬레이터·원장이 낸 **실제 문자열**(경고문, 주입 문단, 거부 사유, Change id·제약 id)로 Claude Code와 GitHub 화면을 재현한 것이다. 원본 HTML·터미널 캡처 텍스트·렌더 스크립트는 `docs/img/src/`(`render.sh`)에 있다. Claude Code 자체의 스크린샷은 사람 검증 때 같은 파일명으로 교체한다.
 
 ## 실행법 — 개인은 서버 없이, 팀만 서버
 

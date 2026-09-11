@@ -1,0 +1,30 @@
+$ keelage setup --yes
+hooks    installed (backup: )
+mcp      registered via claude CLI
+rules    no ~/.claude/CLAUDE.md
+daemon   start with `keelage daemon` (autostart is manual in v0: a systemd user unit or launchd agent running `keelage daemon`)
+observe mode is on for every repository; run `keelage init` in a repository to activate it
+
+$ keelage init --verify --yes
+absorb  imported  rule CLAUDE.md → 01M271NYH16AWG1V24E5GGPACY
+render  written   .keelage/context/claude-code/context.md
+render  written   CLAUDE.md
+gitignore .keelage/context/ added
+sidecar .keelage/manifest.json written
+
+$ keelage constraint add --scope path=src/** --anchor code://src/calc.ts#fee --verify no retries in billing
+01M271NYJ88B1ECNMHM03P3DJT
+
+$ keelage constraint add --kind autonomy --level L0 --deny-edit --scope path=src/vault/* --verify vault code is edited by humans
+01M271NYKJNWBXYJFJE6ZX2MA8
+
+$ keelage anchor add code://src/calc.ts#fee
+code://src/calc.ts#fee  typescript  sig=705fd0e05172 body=751019a01147 file=61de9df06209
+
+$ keelage status
+daemon   not running (~/.keelage/keelage.sock) — hooks fail open
+hooks    installed in ~/.claude/settings.json
+mcp      not registered — claude mcp add --transport stdio --scope user keelage -- keelage mcp
+repo     . — active (1 import(s), 2 rendered, adapters map[claude-code:0.1.0])
+  ok        .keelage/context/claude-code/context.md
+  ok        CLAUDE.md

@@ -1,0 +1,18 @@
+$ git commit -am "cap fee at 100"          # post-commit 훅 → Change 도출
+
+$ keelage change list
+ID                          STATE     MODE    REF           ANCHORS  CONSTRAINTS  SESSIONS  OPENED
+01M271P1FWAFAYMKH4NERPSP8F  proposed  manual  70339142bce5  2        2            0         2026-09-11 01:35
+
+$ keelage inbox
+KIND    ID                      SCOPE      ANCHOR                  STATE     CAUSE
+change  01M271P1FWAF            repo=repo  code://CLAUDE.md +1     proposed  references 2 constraint(s); needs a judgment
+anchor  code://src/calc.ts#fee             code://src/calc.ts#fee  review    body changed since verification
+2 item(s)
+
+$ keelage history code://src/calc.ts#fee
+SEQ  AT                KIND               ACTOR            SUMMARY
+3    2026-09-11 01:35  ConstraintDrafted  dev@example.com  constraint 01M271NYJ88B1ECNMHM03P3DJT drafted: no retries in billing
+7    2026-09-11 01:35  AnchorRecorded     dev@example.com  baseline sig=705fd0e05172 at a257c685
+8    2026-09-11 01:35  ChangeOpened       dev@example.com  change 01M271P1FWAFAYMKH4NERPSP8F opened (manual, 2 constraint(s))
+9    2026-09-11 01:35  AnchorStaled       dev@example.com  review: body changed at 70339142
