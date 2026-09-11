@@ -12,6 +12,22 @@
 
 12주 목표(한 문장): Claude Code를 쓰는 개인이 설치하면 편집 전에 자기 제약이 주입되고, 하루 작업이 Change·판단으로 남으며, 팀이 생기면 서버로 제약을 공유한다.
 
+## 화면
+
+**편집 직전, Claude Code 안에서.** 훅이 돌려준 경고(`systemMessage`)는 사용자에게 보이고, 제약·닻 상태(`additionalContext`)는 모델에게 간다.
+
+![Claude Code — 편집 직전 주입](docs/img/ui-claude-code-inject.png)
+
+**사람만 고치는 범위.** `--deny-edit` 자율 제약이 있는 경로는 에이전트의 쓰기가 거부되고, 이유가 그대로 보인다. 데몬이 없거나 50ms를 넘기면 아무 일도 하지 않는다.
+
+![Claude Code — 거부](docs/img/ui-claude-code-deny.png)
+
+**PR에서.** 데몬이 push한 Change(닿은 제약·닻·판단 상태)가 코멘트와 `keelage` 체크로 보이고, 이유가 있는 승인 리뷰는 그 Change의 판단으로 원장에 남는다.
+
+![GitHub PR — keelage 코멘트·체크](docs/img/ui-github-pr.png)
+
+> 세 장은 이 리포의 훅 시뮬레이터·원장이 낸 **실제 문자열**(경고문, 주입 문단, 거부 사유, Change id·제약 id)로 Claude Code와 GitHub 화면을 재현한 것이다(`docs/img/`). Claude Code 자체의 스크린샷은 사람 검증 때 교체한다.
+
 ## 실행법 — 개인은 서버 없이, 팀만 서버
 
 | 경로 | 필요한 것 | 명령 |
@@ -84,9 +100,7 @@ keelage server proof --seq 1 | keelage verify-proof --server-key "$(keelage serv
 
 셀프호스트는 `deploy/docker/compose.yaml`(서버 + Postgres; 릴리스 이미지가 없을 때는 `keelage-server serve --db postgres://…`와 아무 Postgres 16). GitHub App을 붙이면(`serve --github-app-id --github-app-key --github-webhook-secret`) PR마다 head 커밋의 Change(닿은 제약·닻·판단 상태)가 코멘트와 `keelage` 체크로 보이고, 이유가 있는 승인/변경 요청 리뷰는 그 Change의 판단으로 원장에 남는다. 서버는 리포를 클론하지 않는다 — 데몬이 `sync push`한 만큼만 보인다.
 
-![PR 코멘트와 체크](docs/img/04-pr-comment.svg)
-
-위 그림들은 이 리포의 CLI와 훅 시뮬레이터의 **실제 출력**을 SVG로 옮긴 것이고(`docs/img/`), PR 코멘트만 `app.renderPR` 형식의 예시다. Claude Code 화면 캡처는 사람 검증 때 추가한다.
+터미널 그림들은 이 리포의 CLI와 훅 시뮬레이터의 **실제 출력**을 SVG로 옮긴 것이다(`docs/img/`).
 
 사람 검증 런북: `docs/verification-runbook.md` · 외부 사용자 확인 절차·기록표: `docs/metrics/external-users.md`.
 
